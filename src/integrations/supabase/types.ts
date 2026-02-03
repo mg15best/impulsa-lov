@@ -231,6 +231,298 @@ export type Database = {
         }
         Relationships: []
       }
+      eventos: {
+        Row: {
+          id: string
+          nombre: string
+          tipo: Database["public"]["Enums"]["tipo_evento"]
+          estado: Database["public"]["Enums"]["estado_evento"]
+          fecha: string | null
+          hora_inicio: string | null
+          duracion_minutos: number | null
+          ubicacion: string | null
+          descripcion: string | null
+          ponentes: string | null
+          asistentes_esperados: number | null
+          asistentes_confirmados: number | null
+          observaciones: string | null
+          empresa_id: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          nombre: string
+          tipo?: Database["public"]["Enums"]["tipo_evento"]
+          estado?: Database["public"]["Enums"]["estado_evento"]
+          fecha?: string | null
+          hora_inicio?: string | null
+          duracion_minutos?: number | null
+          ubicacion?: string | null
+          descripcion?: string | null
+          ponentes?: string | null
+          asistentes_esperados?: number | null
+          asistentes_confirmados?: number | null
+          observaciones?: string | null
+          empresa_id?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          nombre?: string
+          tipo?: Database["public"]["Enums"]["tipo_evento"]
+          estado?: Database["public"]["Enums"]["estado_evento"]
+          fecha?: string | null
+          hora_inicio?: string | null
+          duracion_minutos?: number | null
+          ubicacion?: string | null
+          descripcion?: string | null
+          ponentes?: string | null
+          asistentes_esperados?: number | null
+          asistentes_confirmados?: number | null
+          observaciones?: string | null
+          empresa_id?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      formaciones: {
+        Row: {
+          id: string
+          titulo: string
+          tipo: Database["public"]["Enums"]["tipo_formacion"]
+          estado: Database["public"]["Enums"]["estado_formacion"]
+          fecha_inicio: string | null
+          fecha_fin: string | null
+          duracion_horas: number | null
+          formador: string | null
+          descripcion: string | null
+          objetivos: string | null
+          contenido: string | null
+          participantes_max: number | null
+          participantes_inscritos: number | null
+          modalidad: string | null
+          ubicacion: string | null
+          materiales: string | null
+          observaciones: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          titulo: string
+          tipo?: Database["public"]["Enums"]["tipo_formacion"]
+          estado?: Database["public"]["Enums"]["estado_formacion"]
+          fecha_inicio?: string | null
+          fecha_fin?: string | null
+          duracion_horas?: number | null
+          formador?: string | null
+          descripcion?: string | null
+          objetivos?: string | null
+          contenido?: string | null
+          participantes_max?: number | null
+          participantes_inscritos?: number | null
+          modalidad?: string | null
+          ubicacion?: string | null
+          materiales?: string | null
+          observaciones?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          titulo?: string
+          tipo?: Database["public"]["Enums"]["tipo_formacion"]
+          estado?: Database["public"]["Enums"]["estado_formacion"]
+          fecha_inicio?: string | null
+          fecha_fin?: string | null
+          duracion_horas?: number | null
+          formador?: string | null
+          descripcion?: string | null
+          objetivos?: string | null
+          contenido?: string | null
+          participantes_max?: number | null
+          participantes_inscritos?: number | null
+          modalidad?: string | null
+          ubicacion?: string | null
+          materiales?: string | null
+          observaciones?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      evidencias: {
+        Row: {
+          id: string
+          titulo: string
+          tipo: Database["public"]["Enums"]["tipo_evidencia"]
+          descripcion: string | null
+          fecha: string
+          archivo_url: string | null
+          archivo_nombre: string | null
+          empresa_id: string | null
+          evento_id: string | null
+          formacion_id: string | null
+          asesoramiento_id: string | null
+          observaciones: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          titulo: string
+          tipo?: Database["public"]["Enums"]["tipo_evidencia"]
+          descripcion?: string | null
+          fecha?: string
+          archivo_url?: string | null
+          archivo_nombre?: string | null
+          empresa_id?: string | null
+          evento_id?: string | null
+          formacion_id?: string | null
+          asesoramiento_id?: string | null
+          observaciones?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          titulo?: string
+          tipo?: Database["public"]["Enums"]["tipo_evidencia"]
+          descripcion?: string | null
+          fecha?: string
+          archivo_url?: string | null
+          archivo_nombre?: string | null
+          empresa_id?: string | null
+          evento_id?: string | null
+          formacion_id?: string | null
+          asesoramiento_id?: string | null
+          observaciones?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidencias_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidencias_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidencias_formacion_id_fkey"
+            columns: ["formacion_id"]
+            isOneToOne: false
+            referencedRelation: "formaciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidencias_asesoramiento_id_fkey"
+            columns: ["asesoramiento_id"]
+            isOneToOne: false
+            referencedRelation: "asesoramientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      colaboradores: {
+        Row: {
+          id: string
+          nombre: string
+          tipo: Database["public"]["Enums"]["tipo_colaborador"]
+          estado: Database["public"]["Enums"]["estado_colaborador"]
+          cif: string | null
+          descripcion: string | null
+          direccion: string | null
+          telefono: string | null
+          email: string | null
+          web: string | null
+          contacto_principal: string | null
+          cargo_contacto: string | null
+          email_contacto: string | null
+          telefono_contacto: string | null
+          fecha_inicio_colaboracion: string | null
+          ambito_colaboracion: string | null
+          convenio_firmado: boolean | null
+          observaciones: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          nombre: string
+          tipo?: Database["public"]["Enums"]["tipo_colaborador"]
+          estado?: Database["public"]["Enums"]["estado_colaborador"]
+          cif?: string | null
+          descripcion?: string | null
+          direccion?: string | null
+          telefono?: string | null
+          email?: string | null
+          web?: string | null
+          contacto_principal?: string | null
+          cargo_contacto?: string | null
+          email_contacto?: string | null
+          telefono_contacto?: string | null
+          fecha_inicio_colaboracion?: string | null
+          ambito_colaboracion?: string | null
+          convenio_firmado?: boolean | null
+          observaciones?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          nombre?: string
+          tipo?: Database["public"]["Enums"]["tipo_colaborador"]
+          estado?: Database["public"]["Enums"]["estado_colaborador"]
+          cif?: string | null
+          descripcion?: string | null
+          direccion?: string | null
+          telefono?: string | null
+          email?: string | null
+          web?: string | null
+          contacto_principal?: string | null
+          cargo_contacto?: string | null
+          email_contacto?: string | null
+          telefono_contacto?: string | null
+          fecha_inicio_colaboracion?: string | null
+          ambito_colaboracion?: string | null
+          convenio_firmado?: boolean | null
+          observaciones?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -264,6 +556,49 @@ export type Database = {
         | "construccion"
         | "agroalimentario"
         | "otro"
+      tipo_evento:
+        | "taller"
+        | "seminario"
+        | "networking"
+        | "conferencia"
+        | "presentacion"
+        | "otro"
+      estado_evento:
+        | "planificado"
+        | "confirmado"
+        | "en_curso"
+        | "completado"
+        | "cancelado"
+      tipo_formacion:
+        | "pildora_formativa"
+        | "curso"
+        | "masterclass"
+        | "webinar"
+        | "otro"
+      estado_formacion:
+        | "planificada"
+        | "en_curso"
+        | "completada"
+        | "cancelada"
+      tipo_evidencia:
+        | "informe"
+        | "acta"
+        | "fotografia"
+        | "video"
+        | "certificado"
+        | "documento"
+        | "otro"
+      tipo_colaborador:
+        | "entidad_publica"
+        | "entidad_privada"
+        | "asociacion"
+        | "universidad"
+        | "centro_investigacion"
+        | "otro"
+      estado_colaborador:
+        | "activo"
+        | "inactivo"
+        | "pendiente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -411,6 +746,52 @@ export const Constants = {
         "agroalimentario",
         "otro",
       ],
+      tipo_evento: [
+        "taller",
+        "seminario",
+        "networking",
+        "conferencia",
+        "presentacion",
+        "otro",
+      ],
+      estado_evento: [
+        "planificado",
+        "confirmado",
+        "en_curso",
+        "completado",
+        "cancelado",
+      ],
+      tipo_formacion: [
+        "pildora_formativa",
+        "curso",
+        "masterclass",
+        "webinar",
+        "otro",
+      ],
+      estado_formacion: [
+        "planificada",
+        "en_curso",
+        "completada",
+        "cancelada",
+      ],
+      tipo_evidencia: [
+        "informe",
+        "acta",
+        "fotografia",
+        "video",
+        "certificado",
+        "documento",
+        "otro",
+      ],
+      tipo_colaborador: [
+        "entidad_publica",
+        "entidad_privada",
+        "asociacion",
+        "universidad",
+        "centro_investigacion",
+        "otro",
+      ],
+      estado_colaborador: ["activo", "inactivo", "pendiente"],
     },
   },
 } as const
