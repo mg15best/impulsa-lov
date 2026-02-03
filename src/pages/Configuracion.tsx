@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings } from "lucide-react";
+import { Settings, Plug } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 export default function Configuracion() {
   const { user } = useAuth();
@@ -27,6 +28,18 @@ export default function Configuracion() {
           <div>
             <p className="text-sm font-medium">Usuario actual</p>
             <p className="text-muted-foreground">{user?.email}</p>
+          </div>
+          <div className="rounded-md border p-4">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Plug className="h-4 w-4" />
+              Integraciones
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Conecta Power Apps y Power BI en la página de integraciones.
+            </p>
+            <Link className="text-sm text-primary underline-offset-4 hover:underline" to="/integraciones">
+              Abrir integraciones
+            </Link>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">

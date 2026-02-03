@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Plus, Search, ClipboardList, Loader2, Calendar } from "lucide-react";
 import { format } from "date-fns";
@@ -55,6 +55,11 @@ export default function Asesoramientos() {
   });
 
   const fetchData = async () => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
     // Fetch empresas for the dropdown
@@ -85,6 +90,7 @@ export default function Asesoramientos() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterEstado]);
 
   const filteredAsesoramientos = asesoramientos.filter((a) =>
@@ -94,7 +100,7 @@ export default function Asesoramientos() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !supabase) return;
 
     setSaving(true);
     const { error } = await supabase.from("asesoramientos").insert({
@@ -125,6 +131,17 @@ export default function Asesoramientos() {
     }
     setSaving(false);
   };
+
+  if (!supabase) {
+    return (
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Asesoramientos</h1>
+        <p className="text-muted-foreground">
+          Configura Supabase para habilitar esta vista.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

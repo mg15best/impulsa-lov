@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Plus, Search, Building2, Filter, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
@@ -78,6 +78,11 @@ export default function Empresas() {
   });
 
   const fetchEmpresas = async () => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     let query = supabase.from("empresas").select("*").order("created_at", { ascending: false });
 
@@ -99,6 +104,7 @@ export default function Empresas() {
 
   useEffect(() => {
     fetchEmpresas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterSector, filterEstado]);
 
   const filteredEmpresas = empresas.filter((empresa) =>
@@ -108,7 +114,7 @@ export default function Empresas() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !supabase) return;
 
     setSaving(true);
     const { error } = await supabase.from("empresas").insert({
@@ -138,6 +144,17 @@ export default function Empresas() {
     }
     setSaving(false);
   };
+
+  if (!supabase) {
+    return (
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Empresas</h1>
+        <p className="text-muted-foreground">
+          Configura Supabase para habilitar esta vista.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

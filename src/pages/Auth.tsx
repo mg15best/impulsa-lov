@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { Building2, Loader2 } from "lucide-react";
 import { z } from "zod";
 
@@ -23,6 +23,10 @@ export default function Auth() {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session) {
@@ -116,6 +120,17 @@ export default function Auth() {
     }
     setLoading(false);
   };
+
+  if (!supabase) {
+    return (
+      <div className="mx-auto mt-24 max-w-md space-y-4 text-center">
+        <h1 className="text-2xl font-semibold">Autenticación local</h1>
+        <p className="text-muted-foreground">
+          Supabase está desactivado. Activa la configuración para usar autenticación en la nube.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-accent p-4">

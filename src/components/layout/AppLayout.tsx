@@ -2,11 +2,13 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/s
 import { AppSidebar } from "./AppSidebar";
 import { Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Navigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function AppLayout() {
   const { user, loading } = useAuth();
+  const isLocalMode = import.meta.env.VITE_LOCAL_MODE === "true" || !supabase;
 
   if (loading) {
     return (
@@ -19,7 +21,7 @@ export function AppLayout() {
     );
   }
 
-  if (!user) {
+  if (!user && !isLocalMode) {
     return <Navigate to="/auth" replace />;
   }
 

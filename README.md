@@ -1,73 +1,45 @@
-# Welcome to your Lovable project
+# Impulsa LOV
 
-## Project info
+Aplicación Vite + React + Supabase para la gestión de asesoramientos, contactos y empresas.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Requisitos
+- Node.js 18+
+- npm
 
-## How can I edit this code?
+## Configuración
+1. Instala dependencias:
+   ```sh
+   npm install
+   ```
+2. Crea el archivo `.env` (ver ejemplo abajo).
+3. Ejecuta el entorno local:
+   ```sh
+   npm run dev
+   ```
 
-There are several ways of editing your application.
+### Variables de entorno
+Copia `.env.example` a `.env` y completa los valores.
 
-**Use Lovable**
+```
+VITE_SUPABASE_URL="https://<project>.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY="..."
+VITE_SUPABASE_ENABLED="true"
+VITE_LOCAL_MODE="false"
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Power Platform (opcional)
+VITE_POWER_TENANT_ID="..."
+VITE_POWER_CLIENT_ID="..."
+VITE_POWER_API_BASE_URL="https://..."
 ```
 
-**Edit a file directly in GitHub**
+## Power Apps / Power BI
+La app incluye un módulo de integración en `src/integrations/power/` con una página de estado en **Configuración → Integraciones**.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Se puede conectar por **API** (recomendado para sincronización y reporting).
+- También puede importarse como **solución** en Power Apps mediante endpoints o componentes web.
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Scripts
+- `npm run dev`
+- `npm run build`
+- `npm run lint`
+- `npm run test`

@@ -7,6 +7,7 @@ import {
   GraduationCap,
   FileText,
   Handshake,
+  Plug,
   Settings,
   LogOut,
   ChevronDown
@@ -49,6 +50,10 @@ const activityNavItems = [
   { title: "Colaboradores", url: "/colaboradores", icon: Handshake },
 ];
 
+const systemNavItems = [
+  { title: "Integraciones", url: "/integraciones", icon: Plug },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
@@ -60,8 +65,10 @@ export function AppSidebar() {
   const isActivityExpanded = activityNavItems.some((i) => isActive(i.url));
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
+    if (supabase) {
+      await supabase.auth.signOut();
+      navigate("/auth");
+    }
   };
 
   return (
@@ -135,30 +142,56 @@ export function AppSidebar() {
             </CollapsibleContent>
           </Collapsible>
         </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-sidebar-foreground/50">
+            Sistema
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {systemNavItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    tooltip={item.title}
+                  >
+                    <NavLink to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-2">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Configuración">
-              <NavLink to="/configuracion">
-                <Settings className="h-4 w-4" />
-                <span>Configuración</span>
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleLogout}
-              tooltip="Cerrar sesión"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Cerrar sesión</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+        <SidebarFooter className="p-2">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Configuración">
+                <NavLink to="/configuracion">
+                  <Settings className="h-4 w-4" />
+                  <span>Configuración</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            {supabase && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={handleLogout}
+                  tooltip="Cerrar sesión"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Cerrar sesión</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+          </SidebarMenu>
+        </SidebarFooter>
     </Sidebar>
   );
 }
