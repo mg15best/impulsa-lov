@@ -159,7 +159,23 @@ const { canWrite } = useUserRoles();
 3. Or apply manually via Supabase Dashboard SQL Editor
 
 ### Assigning Roles to Users
-To assign roles to existing users, admins can run:
+
+#### Using the Template Script
+A comprehensive template script is available at `scripts/seed_user_roles.sql` with:
+- Detailed instructions on how to find user UUIDs
+- Example INSERT statements for all role types
+- Batch assignment templates
+- Verification queries
+- Safety notes and best practices
+
+To use the template:
+1. Open `scripts/seed_user_roles.sql`
+2. Follow the instructions to obtain user UUIDs
+3. Copy and modify the relevant examples with actual UUIDs
+4. Execute via Supabase Dashboard SQL Editor or CLI
+
+#### Quick Examples
+To quickly assign roles to existing users, admins can run:
 ```sql
 -- Assign auditor role
 INSERT INTO public.user_roles (user_id, role)
