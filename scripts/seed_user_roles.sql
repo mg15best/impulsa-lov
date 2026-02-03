@@ -1,0 +1,173 @@
+-- ==============================================================================
+-- Template: User Role Assignment Script
+-- ==============================================================================
+-- Purpose: This script provides a template for assigning roles to users
+--          in the impulsa-lov application.
+--
+-- IMPORTANT: This is a TEMPLATE file with placeholders. Do NOT run it as-is.
+--            Replace all <PLACEHOLDERS> with actual values before executing.
+--
+-- ==============================================================================
+
+-- ------------------------------------------------------------------------------
+-- Available Roles
+-- ------------------------------------------------------------------------------
+-- The application supports the following roles:
+--   • admin    - Full CRUD access to all tables and role management
+--   • tecnico  - Full CRUD access to business tables with ownership constraints
+--   • auditor  - Read-only access to all business data
+--   • it       - Read-only access to business data (for IT/integration purposes)
+--
+-- Users can have multiple roles assigned simultaneously.
+-- The UNIQUE constraint on (user_id, role) prevents duplicate role assignments.
+-- ------------------------------------------------------------------------------
+
+-- ------------------------------------------------------------------------------
+-- How to Find User UUIDs
+-- ------------------------------------------------------------------------------
+-- To get a user's UUID, you can query the auth.users or profiles table:
+--
+--   SELECT id, email FROM auth.users WHERE email = 'user@example.com';
+--
+-- Or from the Supabase Dashboard:
+--   1. Go to Authentication > Users
+--   2. Click on the user
+--   3. Copy the UUID from the user details
+-- ------------------------------------------------------------------------------
+
+-- ------------------------------------------------------------------------------
+-- Example: Assign Admin Role
+-- ------------------------------------------------------------------------------
+-- Admins have full access to all features and can manage other users' roles.
+--
+-- INSERT INTO public.user_roles (user_id, role)
+-- VALUES ('<USER_UUID_HERE>', 'admin')
+-- ON CONFLICT (user_id, role) DO NOTHING;
+
+-- Example with a placeholder:
+-- INSERT INTO public.user_roles (user_id, role)
+-- VALUES ('00000000-0000-0000-0000-000000000001', 'admin')
+-- ON CONFLICT (user_id, role) DO NOTHING;
+
+-- ------------------------------------------------------------------------------
+-- Example: Assign Tecnico Role
+-- ------------------------------------------------------------------------------
+-- Tecnicos can create and update business records (empresas, contactos, etc.)
+-- but can only modify records they created or are assigned to.
+--
+-- INSERT INTO public.user_roles (user_id, role)
+-- VALUES ('<USER_UUID_HERE>', 'tecnico')
+-- ON CONFLICT (user_id, role) DO NOTHING;
+
+-- Example with a placeholder:
+-- INSERT INTO public.user_roles (user_id, role)
+-- VALUES ('00000000-0000-0000-0000-000000000002', 'tecnico')
+-- ON CONFLICT (user_id, role) DO NOTHING;
+
+-- ------------------------------------------------------------------------------
+-- Example: Assign Auditor Role
+-- ------------------------------------------------------------------------------
+-- Auditors have read-only access to all business data for compliance purposes.
+--
+-- INSERT INTO public.user_roles (user_id, role)
+-- VALUES ('<USER_UUID_HERE>', 'auditor')
+-- ON CONFLICT (user_id, role) DO NOTHING;
+
+-- Example with a placeholder:
+-- INSERT INTO public.user_roles (user_id, role)
+-- VALUES ('00000000-0000-0000-0000-000000000003', 'auditor')
+-- ON CONFLICT (user_id, role) DO NOTHING;
+
+-- ------------------------------------------------------------------------------
+-- Example: Assign IT Role
+-- ------------------------------------------------------------------------------
+-- IT users have read-only access similar to auditors, primarily for
+-- integration and system configuration purposes.
+--
+-- INSERT INTO public.user_roles (user_id, role)
+-- VALUES ('<USER_UUID_HERE>', 'it')
+-- ON CONFLICT (user_id, role) DO NOTHING;
+
+-- Example with a placeholder:
+-- INSERT INTO public.user_roles (user_id, role)
+-- VALUES ('00000000-0000-0000-0000-000000000004', 'it')
+-- ON CONFLICT (user_id, role) DO NOTHING;
+
+-- ------------------------------------------------------------------------------
+-- Example: Assign Multiple Roles to One User
+-- ------------------------------------------------------------------------------
+-- A user can have multiple roles. For example, a user who is both a tecnico
+-- and an auditor:
+--
+-- INSERT INTO public.user_roles (user_id, role)
+-- VALUES 
+--   ('<USER_UUID_HERE>', 'tecnico'),
+--   ('<USER_UUID_HERE>', 'auditor')
+-- ON CONFLICT (user_id, role) DO NOTHING;
+
+-- Example with placeholders:
+-- INSERT INTO public.user_roles (user_id, role)
+-- VALUES 
+--   ('00000000-0000-0000-0000-000000000005', 'tecnico'),
+--   ('00000000-0000-0000-0000-000000000005', 'auditor')
+-- ON CONFLICT (user_id, role) DO NOTHING;
+
+-- ------------------------------------------------------------------------------
+-- Batch Assignment Template
+-- ------------------------------------------------------------------------------
+-- Template for assigning roles to multiple users at once:
+--
+-- INSERT INTO public.user_roles (user_id, role)
+-- VALUES
+--   ('<USER_UUID_1>', 'admin'),
+--   ('<USER_UUID_2>', 'tecnico'),
+--   ('<USER_UUID_3>', 'auditor'),
+--   ('<USER_UUID_4>', 'it')
+-- ON CONFLICT (user_id, role) DO NOTHING;
+
+-- ------------------------------------------------------------------------------
+-- Verification Query
+-- ------------------------------------------------------------------------------
+-- After inserting roles, verify the assignments with:
+--
+-- SELECT ur.user_id, p.email, p.full_name, ur.role, ur.created_at
+-- FROM public.user_roles ur
+-- JOIN public.profiles p ON ur.user_id = p.id
+-- ORDER BY p.email, ur.role;
+
+-- ------------------------------------------------------------------------------
+-- Removing Roles (Optional)
+-- ------------------------------------------------------------------------------
+-- To remove a role from a user (requires admin privileges):
+--
+-- DELETE FROM public.user_roles
+-- WHERE user_id = '<USER_UUID_HERE>' AND role = '<ROLE_NAME>';
+
+-- Example with placeholder:
+-- DELETE FROM public.user_roles
+-- WHERE user_id = '00000000-0000-0000-0000-000000000001' AND role = 'auditor';
+
+-- ------------------------------------------------------------------------------
+-- IMPORTANT NOTES
+-- ------------------------------------------------------------------------------
+-- 1. Only users with the 'admin' role can insert, update, or delete user roles
+--    due to Row Level Security (RLS) policies.
+--
+-- 2. New users automatically receive the 'tecnico' role by default via the
+--    handle_new_user() trigger. You only need to use this script to:
+--    - Assign admin role to initial administrators
+--    - Add additional roles to existing users
+--    - Assign auditor or it roles
+--
+-- 3. The ON CONFLICT clause prevents duplicate role assignments and makes
+--    this script idempotent (safe to run multiple times).
+--
+-- 4. For production environments:
+--    - Always backup the database before running any modifications
+--    - Test in a development/staging environment first
+--    - Use transactions to ensure atomicity
+--    - Review and validate all UUIDs before executing
+--
+-- 5. See RBAC_IMPLEMENTATION.md for complete documentation on the role-based
+--    access control system and permission matrix.
+-- ------------------------------------------------------------------------------
