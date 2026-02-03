@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { Plus, Search, Users, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -28,6 +29,7 @@ export default function Contactos() {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { canWrite } = useUserRoles();
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -141,7 +143,7 @@ export default function Contactos() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={!canWrite}>
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Contacto
             </Button>

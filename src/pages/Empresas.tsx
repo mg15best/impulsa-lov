@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { Plus, Search, Building2, Filter, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -62,6 +63,7 @@ export default function Empresas() {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { canWrite } = useUserRoles();
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -167,7 +169,7 @@ export default function Empresas() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={!canWrite}>
               <Plus className="mr-2 h-4 w-4" />
               Nueva Empresa
             </Button>
