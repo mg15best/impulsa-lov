@@ -288,3 +288,6 @@ CREATE POLICY "Admins can delete asesoramientos"
   ON public.asesoramientos FOR DELETE
   TO authenticated
   USING (public.is_admin(auth.uid()));
+
+-- Notify PostgREST to reload schema cache
+NOTIFY pgrst, 'reload schema';
