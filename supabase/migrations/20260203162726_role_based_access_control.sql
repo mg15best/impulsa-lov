@@ -24,10 +24,10 @@ $$;
 -- Step 3: Update RLS policies for user_roles (restrict to admins only)
 DROP POLICY IF EXISTS "Users can view all roles" ON public.user_roles;
 
-CREATE POLICY "Only admins can view roles"
+CREATE POLICY "Users can view own roles, admins can view all"
   ON public.user_roles FOR SELECT
   TO authenticated
-  USING (public.is_admin(auth.uid()));
+  USING (user_id = auth.uid() OR public.is_admin(auth.uid()));
 
 -- Existing policies for user_roles INSERT, UPDATE, DELETE already restrict to admins
 
