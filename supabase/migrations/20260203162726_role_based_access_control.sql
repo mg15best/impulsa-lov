@@ -101,3 +101,6 @@ CREATE POLICY "Only admins can delete asesoramientos"
 
 -- Note: INSERT policies already use created_by = auth.uid() which is secure
 -- SELECT policies allow all authenticated users (read access for auditor/it roles)
+
+-- Notify PostgREST to reload schema cache
+NOTIFY pgrst, 'reload schema';
