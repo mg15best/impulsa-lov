@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { Plus, Search, ClipboardList, Loader2, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -44,6 +45,7 @@ export default function Asesoramientos() {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { canWrite } = useUserRoles();
 
   const [formData, setFormData] = useState({
     empresa_id: "",
@@ -154,7 +156,7 @@ export default function Asesoramientos() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={!canWrite}>
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Asesoramiento
             </Button>
