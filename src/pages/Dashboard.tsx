@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, FileText, Calendar, GraduationCap, Handshake, Megaphone, TrendingUp, Users } from "lucide-react";
+import { Building2, FileText, Calendar, GraduationCap, Handshake, Megaphone, TrendingUp, Users, BookOpen, BarChart3 } from "lucide-react";
 
 interface KPI {
   label: string;
@@ -20,6 +20,8 @@ export default function Dashboard() {
     { label: "Píldoras formativas", value: 0, target: 6, icon: GraduationCap, color: "text-success" },
     { label: "Entidades colaboradoras", value: 0, target: 8, icon: Handshake, color: "text-accent-foreground" },
     { label: "Impactos de difusión", value: 0, target: 15, icon: Megaphone, color: "text-destructive" },
+    { label: "Material de apoyo", value: 0, target: 5, icon: BookOpen, color: "text-primary" },
+    { label: "Cuadro de mando PowerBI", value: 0, target: 1, icon: BarChart3, color: "text-info" },
   ]);
 
   const [stats, setStats] = useState({
@@ -111,7 +113,7 @@ export default function Dashboard() {
       {/* KPIs STARS */}
       <div>
         <h2 className="mb-4 text-lg font-semibold">Indicadores STARS</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {kpis.map((kpi) => {
             const percentage = Math.min((kpi.value / kpi.target) * 100, 100);
             const Icon = kpi.icon;
