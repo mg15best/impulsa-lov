@@ -76,7 +76,7 @@ export default function Formaciones() {
     }
 
     setLoading(true);
-    let query = supabase.from("formaciones").select("*").order("fecha_inicio", { ascending: false });
+    let query = supabase.from("formaciones").select("*").order("created_at", { ascending: false });
 
     if (filterTipo && filterTipo !== "all") {
       query = query.eq("tipo", filterTipo as TipoFormacion);

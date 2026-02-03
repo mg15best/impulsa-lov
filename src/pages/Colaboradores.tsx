@@ -317,7 +317,7 @@ export default function Colaboradores() {
                   <Checkbox
                     id="convenio_firmado"
                     checked={formData.convenio_firmado}
-                    onCheckedChange={(checked) => setFormData({ ...formData, convenio_firmado: checked as boolean })}
+                    onCheckedChange={(checked) => setFormData({ ...formData, convenio_firmado: Boolean(checked) })}
                   />
                   <Label htmlFor="convenio_firmado" className="cursor-pointer">
                     Convenio Firmado

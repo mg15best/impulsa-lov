@@ -77,7 +77,7 @@ export default function Eventos() {
     }
 
     setLoading(true);
-    let query = supabase.from("eventos").select("*").order("fecha", { ascending: false });
+    let query = supabase.from("eventos").select("*").order("created_at", { ascending: false });
 
     if (filterTipo && filterTipo !== "all") {
       query = query.eq("tipo", filterTipo as TipoEvento);
