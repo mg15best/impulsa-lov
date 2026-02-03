@@ -24,6 +24,9 @@ CREATE POLICY "Users with roles can view profiles"
   );
 
 -- Step 3: Harden empresas policies
+-- Note: SELECT policy "Authenticated users can view all empresas" remains from initial migration
+-- This allows read access for all authenticated users including auditor/it roles
+
 -- Drop existing INSERT policy and recreate with role check
 DROP POLICY IF EXISTS "Authenticated users can insert empresas" ON public.empresas;
 
@@ -55,6 +58,9 @@ CREATE POLICY "Only admins can delete empresas"
   USING (public.is_admin(auth.uid()));
 
 -- Step 4: Harden contactos policies
+-- Note: SELECT policy "Authenticated users can view all contactos" remains from initial migration
+-- This allows read access for all authenticated users including auditor/it roles
+
 -- Drop existing INSERT policy and recreate with role check
 DROP POLICY IF EXISTS "Authenticated users can insert contactos" ON public.contactos;
 
@@ -86,6 +92,9 @@ CREATE POLICY "Only admins can delete contactos"
   USING (public.is_admin(auth.uid()));
 
 -- Step 5: Harden asesoramientos policies
+-- Note: SELECT policy "Authenticated users can view all asesoramientos" remains from initial migration
+-- This allows read access for all authenticated users including auditor/it roles
+
 -- Drop existing INSERT policy and recreate with role check
 DROP POLICY IF EXISTS "Authenticated users can insert asesoramientos" ON public.asesoramientos;
 
