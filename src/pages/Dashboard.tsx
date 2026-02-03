@@ -30,6 +30,10 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
     async function fetchStats() {
       // Fetch empresas count
       const { count: totalEmpresas } = await supabase
@@ -83,6 +87,17 @@ export default function Dashboard() {
 
     fetchStats();
   }, []);
+
+  if (!supabase) {
+    return (
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Configura Supabase para habilitar los indicadores.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

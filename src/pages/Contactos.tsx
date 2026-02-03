@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Plus, Search, Users, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
@@ -40,6 +40,11 @@ export default function Contactos() {
   });
 
   const fetchData = async () => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
     // Fetch empresas for dropdown
@@ -70,6 +75,7 @@ export default function Contactos() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterEmpresa]);
 
   const filteredContactos = contactos.filter((c) =>
@@ -80,7 +86,7 @@ export default function Contactos() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !supabase) return;
 
     setSaving(true);
     const { error } = await supabase.from("contactos").insert({
@@ -112,6 +118,17 @@ export default function Contactos() {
     }
     setSaving(false);
   };
+
+  if (!supabase) {
+    return (
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Contactos</h1>
+        <p className="text-muted-foreground">
+          Configura Supabase para habilitar esta vista.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
