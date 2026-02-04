@@ -103,6 +103,14 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-lg overflow-hidden">
+        <img 
+          src="/femete-impulsa-banner.svg" 
+          alt="Femete Impulsa" 
+          className="w-full h-auto max-h-32 object-cover"
+        />
+      </div>
+      
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
