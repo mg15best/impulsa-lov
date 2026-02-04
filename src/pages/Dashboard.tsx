@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { Building2, FileText, Calendar, GraduationCap, Handshake, Megaphone, TrendingUp, Users, BookOpen, BarChart3 } from "lucide-react";
+import { FemeteImpulsaBanner } from "@/components/FemeteImpulsaBanner";
 
 interface KPI {
   label: string;
@@ -93,13 +94,7 @@ export default function Dashboard() {
   if (!supabase) {
     return (
       <div className="space-y-6">
-        <div className="rounded-lg overflow-hidden">
-          <img 
-            src="/femete-impulsa-banner.svg" 
-            alt="Femete Impulsa" 
-            className="w-full h-auto max-h-32 object-cover"
-          />
-        </div>
+        <FemeteImpulsaBanner />
         
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
@@ -113,13 +108,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg overflow-hidden">
-        <img 
-          src="/femete-impulsa-banner.svg" 
-          alt="Femete Impulsa" 
-          className="w-full h-auto max-h-32 object-cover"
-        />
-      </div>
+      <FemeteImpulsaBanner />
       
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
