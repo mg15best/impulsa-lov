@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { Building2, FileText, Calendar, GraduationCap, Handshake, Megaphone, TrendingUp, Users, BookOpen, BarChart3 } from "lucide-react";
+import { FemeteImpulsaBanner } from "@/components/FemeteImpulsaBanner";
 
 interface KPI {
   label: string;
@@ -92,17 +93,23 @@ export default function Dashboard() {
 
   if (!supabase) {
     return (
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Configura Supabase para habilitar los indicadores.
-        </p>
+      <div className="space-y-6">
+        <FemeteImpulsaBanner />
+        
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Configura Supabase para habilitar los indicadores.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      <FemeteImpulsaBanner />
+      
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">

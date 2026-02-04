@@ -136,8 +136,12 @@ export default function Auth() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-accent p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-primary">
-            <Building2 className="h-8 w-8 text-primary-foreground" />
+          <div className="mx-auto mb-4 w-full max-w-sm">
+            <img 
+              src="/femete-impulsa-banner.svg" 
+              alt="Femete Impulsa" 
+              className="w-full h-auto rounded-lg"
+            />
           </div>
           <CardTitle className="text-2xl font-bold">FEMETE IMPULSA</CardTitle>
           <CardDescription>
