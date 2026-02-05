@@ -369,6 +369,10 @@ export type Database = {
           ubicacion: string | null
           materiales: string | null
           observaciones: string | null
+          tema: string | null
+          hora_inicio: string | null
+          hora_fin: string | null
+          notas_evidencia: string | null
           created_by: string | null
           created_at: string
           updated_at: string
@@ -391,6 +395,10 @@ export type Database = {
           ubicacion?: string | null
           materiales?: string | null
           observaciones?: string | null
+          tema?: string | null
+          hora_inicio?: string | null
+          hora_fin?: string | null
+          notas_evidencia?: string | null
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -413,6 +421,10 @@ export type Database = {
           ubicacion?: string | null
           materiales?: string | null
           observaciones?: string | null
+          tema?: string | null
+          hora_inicio?: string | null
+          hora_fin?: string | null
+          notas_evidencia?: string | null
           created_by?: string | null
           created_at?: string
           updated_at?: string

@@ -59,13 +59,18 @@ export default function Formaciones() {
     estado: "planificada" as EstadoFormacion,
     fecha_inicio: "",
     fecha_fin: "",
+    hora_inicio: "",
+    hora_fin: "",
     duracion_horas: 0,
     formador: "",
     descripcion: "",
     objetivos: "",
+    tema: "",
     participantes_max: 0,
     modalidad: "",
     ubicacion: "",
+    materiales: "",
+    notas_evidencia: "",
     observaciones: "",
   });
 
@@ -125,13 +130,18 @@ export default function Formaciones() {
         estado: "planificada",
         fecha_inicio: "",
         fecha_fin: "",
+        hora_inicio: "",
+        hora_fin: "",
         duracion_horas: 0,
         formador: "",
         descripcion: "",
         objetivos: "",
+        tema: "",
         participantes_max: 0,
         modalidad: "",
         ubicacion: "",
+        materiales: "",
+        notas_evidencia: "",
         observaciones: "",
       });
       fetchFormaciones();
@@ -185,6 +195,16 @@ export default function Formaciones() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="tema">Tema</Label>
+                  <Input
+                    id="tema"
+                    value={formData.tema}
+                    onChange={(e) => setFormData({ ...formData, tema: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
                   <Label htmlFor="tipo">Tipo</Label>
                   <Select
                     value={formData.tipo}
@@ -195,6 +215,24 @@ export default function Formaciones() {
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(tipoLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="estado">Estado</Label>
+                  <Select
+                    value={formData.estado}
+                    onValueChange={(v) => setFormData({ ...formData, estado: v as EstadoFormacion })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(estadoLabels).map(([value, label]) => (
                         <SelectItem key={value} value={value}>
                           {label}
                         </SelectItem>
@@ -214,12 +252,32 @@ export default function Formaciones() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="hora_inicio">Hora Inicio</Label>
+                  <Input
+                    id="hora_inicio"
+                    type="time"
+                    value={formData.hora_inicio}
+                    onChange={(e) => setFormData({ ...formData, hora_inicio: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
                   <Label htmlFor="fecha_fin">Fecha Fin</Label>
                   <Input
                     id="fecha_fin"
                     type="date"
                     value={formData.fecha_fin}
                     onChange={(e) => setFormData({ ...formData, fecha_fin: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hora_fin">Hora Fin</Label>
+                  <Input
+                    id="hora_fin"
+                    type="time"
+                    value={formData.hora_fin}
+                    onChange={(e) => setFormData({ ...formData, hora_fin: e.target.value })}
                   />
                 </div>
               </div>
@@ -292,6 +350,24 @@ export default function Formaciones() {
                   id="objetivos"
                   value={formData.objetivos}
                   onChange={(e) => setFormData({ ...formData, objetivos: e.target.value })}
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="materiales">Notas de Materiales</Label>
+                <Textarea
+                  id="materiales"
+                  value={formData.materiales}
+                  onChange={(e) => setFormData({ ...formData, materiales: e.target.value })}
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="notas_evidencia">Notas de Evidencia</Label>
+                <Textarea
+                  id="notas_evidencia"
+                  value={formData.notas_evidencia}
+                  onChange={(e) => setFormData({ ...formData, notas_evidencia: e.target.value })}
                   rows={2}
                 />
               </div>
