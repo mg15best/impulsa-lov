@@ -298,6 +298,12 @@ export type Database = {
           asistentes_confirmados: number | null
           observaciones: string | null
           empresa_id: string | null
+          fecha_fin: string | null
+          hora_fin: string | null
+          formato: string | null
+          objetivo: string | null
+          notas_programa: string | null
+          notas_evidencia: string | null
           created_by: string | null
           created_at: string
           updated_at: string
@@ -317,6 +323,12 @@ export type Database = {
           asistentes_confirmados?: number | null
           observaciones?: string | null
           empresa_id?: string | null
+          fecha_fin?: string | null
+          hora_fin?: string | null
+          formato?: string | null
+          objetivo?: string | null
+          notas_programa?: string | null
+          notas_evidencia?: string | null
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -336,6 +348,12 @@ export type Database = {
           asistentes_confirmados?: number | null
           observaciones?: string | null
           empresa_id?: string | null
+          fecha_fin?: string | null
+          hora_fin?: string | null
+          formato?: string | null
+          objetivo?: string | null
+          notas_programa?: string | null
+          notas_evidencia?: string | null
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -369,6 +387,10 @@ export type Database = {
           ubicacion: string | null
           materiales: string | null
           observaciones: string | null
+          tema: string | null
+          hora_inicio: string | null
+          hora_fin: string | null
+          notas_evidencia: string | null
           created_by: string | null
           created_at: string
           updated_at: string
@@ -391,6 +413,10 @@ export type Database = {
           ubicacion?: string | null
           materiales?: string | null
           observaciones?: string | null
+          tema?: string | null
+          hora_inicio?: string | null
+          hora_fin?: string | null
+          notas_evidencia?: string | null
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -413,6 +439,10 @@ export type Database = {
           ubicacion?: string | null
           materiales?: string | null
           observaciones?: string | null
+          tema?: string | null
+          hora_inicio?: string | null
+          hora_fin?: string | null
+          notas_evidencia?: string | null
           created_by?: string | null
           created_at?: string
           updated_at?: string

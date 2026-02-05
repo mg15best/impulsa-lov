@@ -62,11 +62,17 @@ export default function Eventos() {
     estado: "planificado" as EstadoEvento,
     fecha: "",
     hora_inicio: "",
+    fecha_fin: "",
+    hora_fin: "",
     duracion_minutos: 120,
+    formato: "",
     ubicacion: "",
     descripcion: "",
+    objetivo: "",
     ponentes: "",
     asistentes_esperados: 0,
+    notas_programa: "",
+    notas_evidencia: "",
     observaciones: "",
   });
 
@@ -126,11 +132,17 @@ export default function Eventos() {
         estado: "planificado",
         fecha: "",
         hora_inicio: "",
+        fecha_fin: "",
+        hora_fin: "",
         duracion_minutos: 120,
+        formato: "",
         ubicacion: "",
         descripcion: "",
+        objetivo: "",
         ponentes: "",
         asistentes_esperados: 0,
+        notas_programa: "",
+        notas_evidencia: "",
         observaciones: "",
       });
       fetchEventos();
@@ -204,6 +216,42 @@ export default function Eventos() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
+                  <Label htmlFor="estado">Estado</Label>
+                  <Select
+                    value={formData.estado}
+                    onValueChange={(v) => setFormData({ ...formData, estado: v as EstadoEvento })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(estadoLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="formato">Formato</Label>
+                  <Select
+                    value={formData.formato}
+                    onValueChange={(v) => setFormData({ ...formData, formato: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="presencial">Presencial</SelectItem>
+                      <SelectItem value="online">Online</SelectItem>
+                      <SelectItem value="hibrido">Híbrido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
                   <Label htmlFor="fecha">Fecha</Label>
                   <Input
                     id="fecha"
@@ -219,6 +267,26 @@ export default function Eventos() {
                     type="time"
                     value={formData.hora_inicio}
                     onChange={(e) => setFormData({ ...formData, hora_inicio: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="fecha_fin">Fecha Fin</Label>
+                  <Input
+                    id="fecha_fin"
+                    type="date"
+                    value={formData.fecha_fin}
+                    onChange={(e) => setFormData({ ...formData, fecha_fin: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hora_fin">Hora de Fin</Label>
+                  <Input
+                    id="hora_fin"
+                    type="time"
+                    value={formData.hora_fin}
+                    onChange={(e) => setFormData({ ...formData, hora_fin: e.target.value })}
                   />
                 </div>
               </div>
@@ -243,7 +311,7 @@ export default function Eventos() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="ubicacion">Ubicación</Label>
+                <Label htmlFor="ubicacion">Ubicación o URL</Label>
                 <Input
                   id="ubicacion"
                   value={formData.ubicacion}
@@ -260,12 +328,39 @@ export default function Eventos() {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="objetivo">Objetivo</Label>
+                <Textarea
+                  id="objetivo"
+                  value={formData.objetivo}
+                  onChange={(e) => setFormData({ ...formData, objetivo: e.target.value })}
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea
                   id="descripcion"
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                  rows={3}
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="notas_programa">Notas del Programa</Label>
+                <Textarea
+                  id="notas_programa"
+                  value={formData.notas_programa}
+                  onChange={(e) => setFormData({ ...formData, notas_programa: e.target.value })}
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="notas_evidencia">Notas de Evidencia</Label>
+                <Textarea
+                  id="notas_evidencia"
+                  value={formData.notas_evidencia}
+                  onChange={(e) => setFormData({ ...formData, notas_evidencia: e.target.value })}
+                  rows={2}
                 />
               </div>
               <div className="space-y-2">
