@@ -475,6 +475,7 @@ export default function Empresas() {
                 <TableRow>
                   <TableHead>Nombre</TableHead>
                   <TableHead>CIF</TableHead>
+                  <TableHead>Municipio</TableHead>
                   <TableHead>Sector</TableHead>
                   <TableHead>Fase</TableHead>
                   <TableHead>Estado</TableHead>
@@ -484,9 +485,20 @@ export default function Empresas() {
               <TableBody>
                 {filteredEmpresas.map((empresa) => (
                   <TableRow key={empresa.id} className="cursor-pointer hover:bg-muted/50">
-                    <TableCell className="font-medium">{empresa.nombre}</TableCell>
+                    <TableCell className="font-medium">
+                      <div>{empresa.nombre}</div>
+                      {empresa.nombre_comercial && (
+                        <div className="text-xs text-muted-foreground">{empresa.nombre_comercial}</div>
+                      )}
+                    </TableCell>
                     <TableCell>{empresa.cif || "-"}</TableCell>
-                    <TableCell>{sectorLabels[empresa.sector]}</TableCell>
+                    <TableCell>{empresa.municipio || "-"}</TableCell>
+                    <TableCell>
+                      <div>{sectorLabels[empresa.sector]}</div>
+                      {empresa.subsector && (
+                        <div className="text-xs text-muted-foreground">{empresa.subsector}</div>
+                      )}
+                    </TableCell>
                     <TableCell>{faseLabels[empresa.fase_madurez]}</TableCell>
                     <TableCell>
                       <Badge className={estadoColors[empresa.estado]}>
