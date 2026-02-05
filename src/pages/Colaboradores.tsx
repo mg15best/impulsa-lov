@@ -76,7 +76,7 @@ export default function Colaboradores() {
     tipos_apoyo: [] as string[],
     codigo_rango_ticket: "",
     requisitos_habituales: "",
-    asignado_a: "",
+    asignado_a: null as string | null,
   });
 
   const fetchColaboradores = async () => {
@@ -152,7 +152,7 @@ export default function Colaboradores() {
         tipos_apoyo: [],
         codigo_rango_ticket: "",
         requisitos_habituales: "",
-        asignado_a: "",
+        asignado_a: null,
       });
       fetchColaboradores();
     }

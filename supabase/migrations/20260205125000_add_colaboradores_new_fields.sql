@@ -8,7 +8,7 @@ ALTER TABLE public.colaboradores
   ADD COLUMN IF NOT EXISTS tipos_apoyo TEXT[] DEFAULT '{}',
   ADD COLUMN IF NOT EXISTS codigo_rango_ticket TEXT,
   ADD COLUMN IF NOT EXISTS requisitos_habituales TEXT,
-  ADD COLUMN IF NOT EXISTS asignado_a UUID REFERENCES auth.users(id);
+  ADD COLUMN IF NOT EXISTS asignado_a UUID REFERENCES auth.users(id) ON DELETE SET NULL;
 
 -- Add comments to document the fields
 COMMENT ON COLUMN public.colaboradores.nombre IS 'Nombre de la entidad colaboradora';
