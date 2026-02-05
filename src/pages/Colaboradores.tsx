@@ -71,6 +71,12 @@ export default function Colaboradores() {
     ambito_colaboracion: "",
     convenio_firmado: false,
     observaciones: "",
+    codigo_alcance: "",
+    sectores_interes: [] as string[],
+    tipos_apoyo: [] as string[],
+    codigo_rango_ticket: "",
+    requisitos_habituales: "",
+    asignado_a: null as string | null,
   });
 
   const fetchColaboradores = async () => {
@@ -141,6 +147,12 @@ export default function Colaboradores() {
         ambito_colaboracion: "",
         convenio_firmado: false,
         observaciones: "",
+        codigo_alcance: "",
+        sectores_interes: [],
+        tipos_apoyo: [],
+        codigo_rango_ticket: "",
+        requisitos_habituales: "",
+        asignado_a: null,
       });
       fetchColaboradores();
     }
@@ -334,6 +346,52 @@ export default function Colaboradores() {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="codigo_alcance">Código de Alcance</Label>
+                <Input
+                  id="codigo_alcance"
+                  value={formData.codigo_alcance}
+                  onChange={(e) => setFormData({ ...formData, codigo_alcance: e.target.value })}
+                  placeholder="Ej: local, regional, nacional"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sectores_interes">Sectores de Interés</Label>
+                <Input
+                  id="sectores_interes"
+                  value={formData.sectores_interes.join(', ')}
+                  onChange={(e) => setFormData({ ...formData, sectores_interes: e.target.value.split(',').map(s => s.trim()).filter(s => s) })}
+                  placeholder="Separados por comas"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tipos_apoyo">Tipos de Apoyo</Label>
+                <Input
+                  id="tipos_apoyo"
+                  value={formData.tipos_apoyo.join(', ')}
+                  onChange={(e) => setFormData({ ...formData, tipos_apoyo: e.target.value.split(',').map(s => s.trim()).filter(s => s) })}
+                  placeholder="Ej: financiero, técnico, formativo"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="codigo_rango_ticket">Código de Rango de Ticket</Label>
+                <Input
+                  id="codigo_rango_ticket"
+                  value={formData.codigo_rango_ticket}
+                  onChange={(e) => setFormData({ ...formData, codigo_rango_ticket: e.target.value })}
+                  placeholder="Ej: bajo, medio, alto"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="requisitos">Requisitos Habituales</Label>
+                <Textarea
+                  id="requisitos"
+                  value={formData.requisitos_habituales}
+                  onChange={(e) => setFormData({ ...formData, requisitos_habituales: e.target.value })}
+                  rows={2}
+                  placeholder="Requisitos o condiciones habituales"
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea
                   id="descripcion"
@@ -441,6 +499,7 @@ export default function Colaboradores() {
                 <TableRow>
                   <TableHead>Nombre</TableHead>
                   <TableHead>Tipo</TableHead>
+                  <TableHead>Alcance</TableHead>
                   <TableHead>Contacto</TableHead>
                   <TableHead>Convenio</TableHead>
                   <TableHead>Estado</TableHead>
@@ -451,6 +510,9 @@ export default function Colaboradores() {
                   <TableRow key={colaborador.id} className="cursor-pointer hover:bg-muted/50">
                     <TableCell className="font-medium">{colaborador.nombre}</TableCell>
                     <TableCell>{tipoLabels[colaborador.tipo]}</TableCell>
+                    <TableCell>
+                      {colaborador.codigo_alcance || "-"}
+                    </TableCell>
                     <TableCell>
                       {colaborador.contacto_principal || colaborador.email || "-"}
                     </TableCell>
