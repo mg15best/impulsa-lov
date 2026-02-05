@@ -252,7 +252,7 @@ export default function Eventos() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="fecha">Fecha Inicio</Label>
+                  <Label htmlFor="fecha">Fecha</Label>
                   <Input
                     id="fecha"
                     type="date"
