@@ -67,16 +67,25 @@ export default function Empresas() {
 
   const [formData, setFormData] = useState({
     nombre: "",
+    nombre_comercial: "",
     cif: "",
+    forma_juridica: "",
     sector: "otro" as SectorEmpresa,
+    subsector: "",
     fase_madurez: "idea" as FaseMadurez,
     estado: "pendiente" as EstadoEmpresa,
     descripcion: "",
     direccion: "",
+    codigo_postal: "",
+    municipio: "",
+    isla: "",
     telefono: "",
     email: "",
     web: "",
     contacto_principal: "",
+    fecha_constitucion: "",
+    codigo_origen_lead: "",
+    es_caso_exito: false,
   });
 
   const fetchEmpresas = async () => {
@@ -131,16 +140,25 @@ export default function Empresas() {
       setDialogOpen(false);
       setFormData({
         nombre: "",
+        nombre_comercial: "",
         cif: "",
+        forma_juridica: "",
         sector: "otro",
+        subsector: "",
         fase_madurez: "idea",
         estado: "pendiente",
         descripcion: "",
         direccion: "",
+        codigo_postal: "",
+        municipio: "",
+        isla: "",
         telefono: "",
         email: "",
         web: "",
         contacto_principal: "",
+        fecha_constitucion: "",
+        codigo_origen_lead: "",
+        es_caso_exito: false,
       });
       fetchEmpresas();
     }
@@ -184,7 +202,7 @@ export default function Empresas() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="nombre">Nombre *</Label>
+                  <Label htmlFor="nombre">Nombre Legal *</Label>
                   <Input
                     id="nombre"
                     value={formData.nombre}
@@ -193,11 +211,30 @@ export default function Empresas() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="nombre_comercial">Nombre Comercial</Label>
+                  <Input
+                    id="nombre_comercial"
+                    value={formData.nombre_comercial}
+                    onChange={(e) => setFormData({ ...formData, nombre_comercial: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
                   <Label htmlFor="cif">CIF</Label>
                   <Input
                     id="cif"
                     value={formData.cif}
                     onChange={(e) => setFormData({ ...formData, cif: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="forma_juridica">Forma Jurídica</Label>
+                  <Input
+                    id="forma_juridica"
+                    placeholder="S.L., S.A., Autónomo, etc."
+                    value={formData.forma_juridica}
+                    onChange={(e) => setFormData({ ...formData, forma_juridica: e.target.value })}
                   />
                 </div>
               </div>
@@ -221,6 +258,16 @@ export default function Empresas() {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="subsector">Subsector</Label>
+                  <Input
+                    id="subsector"
+                    value={formData.subsector}
+                    onChange={(e) => setFormData({ ...formData, subsector: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
                   <Label htmlFor="fase">Fase de Madurez</Label>
                   <Select
                     value={formData.fase_madurez}
@@ -237,6 +284,15 @@ export default function Empresas() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fecha_constitucion">Fecha de Constitución</Label>
+                  <Input
+                    id="fecha_constitucion"
+                    type="date"
+                    value={formData.fecha_constitucion}
+                    onChange={(e) => setFormData({ ...formData, fecha_constitucion: e.target.value })}
+                  />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -265,6 +321,52 @@ export default function Empresas() {
                   value={formData.direccion}
                   onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
                 />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="codigo_postal">Código Postal</Label>
+                  <Input
+                    id="codigo_postal"
+                    value={formData.codigo_postal}
+                    onChange={(e) => setFormData({ ...formData, codigo_postal: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="municipio">Municipio</Label>
+                  <Input
+                    id="municipio"
+                    value={formData.municipio}
+                    onChange={(e) => setFormData({ ...formData, municipio: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="isla">Isla</Label>
+                  <Input
+                    id="isla"
+                    value={formData.isla}
+                    onChange={(e) => setFormData({ ...formData, isla: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="web">Sitio Web</Label>
+                  <Input
+                    id="web"
+                    type="url"
+                    placeholder="https://..."
+                    value={formData.web}
+                    onChange={(e) => setFormData({ ...formData, web: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="codigo_origen_lead">Origen del Lead</Label>
+                  <Input
+                    id="codigo_origen_lead"
+                    value={formData.codigo_origen_lead}
+                    onChange={(e) => setFormData({ ...formData, codigo_origen_lead: e.target.value })}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="contacto_principal">Contacto Principal</Label>

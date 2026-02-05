@@ -129,56 +129,107 @@ export type Database = {
       empresas: {
         Row: {
           cif: string | null
+          codigo_estado_pipeline: string | null
+          codigo_motivo_cierre: string | null
+          codigo_origen_lead: string | null
+          codigo_postal: string | null
           contacto_principal: string | null
           created_at: string
           created_by: string | null
           descripcion: string | null
           direccion: string | null
           email: string | null
+          es_caso_exito: boolean | null
           estado: Database["public"]["Enums"]["estado_empresa"]
           fase_madurez: Database["public"]["Enums"]["fase_madurez"]
+          fecha_constitucion: string | null
+          fecha_finalizacion: string | null
+          fecha_inicio: string | null
+          fecha_recepcion_diagnostico: string | null
+          forma_juridica: string | null
           id: string
+          isla: string | null
+          municipio: string | null
           nombre: string
+          nombre_comercial: string | null
+          redes_sociales: Json | null
+          resumen_diagnostico: string | null
           sector: Database["public"]["Enums"]["sector_empresa"]
+          subsector: string | null
           tecnico_asignado_id: string | null
           telefono: string | null
           updated_at: string
+          url_formulario_diagnostico: string | null
           web: string | null
         }
         Insert: {
           cif?: string | null
+          codigo_estado_pipeline?: string | null
+          codigo_motivo_cierre?: string | null
+          codigo_origen_lead?: string | null
+          codigo_postal?: string | null
           contacto_principal?: string | null
           created_at?: string
           created_by?: string | null
           descripcion?: string | null
           direccion?: string | null
           email?: string | null
+          es_caso_exito?: boolean | null
           estado?: Database["public"]["Enums"]["estado_empresa"]
           fase_madurez?: Database["public"]["Enums"]["fase_madurez"]
+          fecha_constitucion?: string | null
+          fecha_finalizacion?: string | null
+          fecha_inicio?: string | null
+          fecha_recepcion_diagnostico?: string | null
+          forma_juridica?: string | null
           id?: string
+          isla?: string | null
+          municipio?: string | null
           nombre: string
+          nombre_comercial?: string | null
+          redes_sociales?: Json | null
+          resumen_diagnostico?: string | null
           sector?: Database["public"]["Enums"]["sector_empresa"]
+          subsector?: string | null
           tecnico_asignado_id?: string | null
           telefono?: string | null
           updated_at?: string
+          url_formulario_diagnostico?: string | null
           web?: string | null
         }
         Update: {
           cif?: string | null
+          codigo_estado_pipeline?: string | null
+          codigo_motivo_cierre?: string | null
+          codigo_origen_lead?: string | null
+          codigo_postal?: string | null
           contacto_principal?: string | null
           created_at?: string
           created_by?: string | null
           descripcion?: string | null
           direccion?: string | null
           email?: string | null
+          es_caso_exito?: boolean | null
           estado?: Database["public"]["Enums"]["estado_empresa"]
           fase_madurez?: Database["public"]["Enums"]["fase_madurez"]
+          fecha_constitucion?: string | null
+          fecha_finalizacion?: string | null
+          fecha_inicio?: string | null
+          fecha_recepcion_diagnostico?: string | null
+          forma_juridica?: string | null
           id?: string
+          isla?: string | null
+          municipio?: string | null
           nombre?: string
+          nombre_comercial?: string | null
+          redes_sociales?: Json | null
+          resumen_diagnostico?: string | null
           sector?: Database["public"]["Enums"]["sector_empresa"]
+          subsector?: string | null
           tecnico_asignado_id?: string | null
           telefono?: string | null
           updated_at?: string
+          url_formulario_diagnostico?: string | null
           web?: string | null
         }
         Relationships: []
