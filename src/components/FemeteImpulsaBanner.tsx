@@ -4,7 +4,7 @@ export function FemeteImpulsaBanner() {
       <img 
         src="/femete-impulsa-banner.png" 
         alt="Femete Impulsa" 
-        className="w-full h-auto max-h-32 object-cover"
+        className="w-full h-auto object-contain"
       />
     </div>
   );
