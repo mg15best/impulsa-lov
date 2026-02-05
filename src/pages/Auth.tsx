@@ -138,7 +138,7 @@ export default function Auth() {
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-4 w-full max-w-sm">
             <img 
-              src="/femete-impulsa-banner.svg" 
+              src="/femete-impulsa-banner.png" 
               alt="Femete Impulsa" 
               className="w-full h-auto rounded-lg"
             />
