@@ -522,6 +522,12 @@ export type Database = {
           ambito_colaboracion: string | null
           convenio_firmado: boolean | null
           observaciones: string | null
+          codigo_alcance: string | null
+          sectores_interes: string[] | null
+          tipos_apoyo: string[] | null
+          codigo_rango_ticket: string | null
+          requisitos_habituales: string | null
+          asignado_a: string | null
           created_by: string | null
           created_at: string
           updated_at: string
@@ -545,6 +551,12 @@ export type Database = {
           ambito_colaboracion?: string | null
           convenio_firmado?: boolean | null
           observaciones?: string | null
+          codigo_alcance?: string | null
+          sectores_interes?: string[] | null
+          tipos_apoyo?: string[] | null
+          codigo_rango_ticket?: string | null
+          requisitos_habituales?: string | null
+          asignado_a?: string | null
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -568,6 +580,12 @@ export type Database = {
           ambito_colaboracion?: string | null
           convenio_firmado?: boolean | null
           observaciones?: string | null
+          codigo_alcance?: string | null
+          sectores_interes?: string[] | null
+          tipos_apoyo?: string[] | null
+          codigo_rango_ticket?: string | null
+          requisitos_habituales?: string | null
+          asignado_a?: string | null
           created_by?: string | null
           created_at?: string
           updated_at?: string
