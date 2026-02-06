@@ -42,10 +42,13 @@ export function usePermissionFeedback() {
 
   /**
    * Verifica si el usuario puede realizar una acción
-   * @param action - El tipo de acción
+   * Nota: Actualmente todas las acciones (create, edit, delete) requieren canWrite
+   * @param action - El tipo de acción (actualmente no utilizado, todas requieren canWrite)
    * @returns true si tiene permisos, false si no
    */
-  const canPerformAction = (action: "create" | "edit" | "delete" = "create"): boolean => {
+  const canPerformAction = (_action: "create" | "edit" | "delete" = "create"): boolean => {
+    // En el futuro, esto podría diferenciar entre acciones
+    // Por ahora, todas las acciones requieren permisos de escritura
     return canWrite;
   };
 
