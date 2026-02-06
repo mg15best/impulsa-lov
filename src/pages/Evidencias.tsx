@@ -31,6 +31,11 @@ type EvidenciaWithRelations = Evidencia & {
   asesoramiento?: { tema: string | null } | null;
 };
 
+// Helper to convert empty strings to null
+const toNullIfEmpty = (value: string): string | null => {
+  return value === "" ? null : value;
+};
+
 const tipoLabels: Record<TipoEvidencia, string> = {
   informe: "Informe",
   acta: "Acta",
@@ -146,17 +151,17 @@ export default function Evidencias() {
     asesoramiento_id: "",
   });
 
-  // Helper to convert empty strings to null
-  const toNullIfEmpty = (value: string): string | null => {
-    return value === "" ? null : value;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !supabase) return;
 
-    // Validation: at least one relationship must be selected
-    const hasRelationship = formData.empresa_id || formData.evento_id || formData.formacion_id || formData.asesoramiento_id;
+    // Validation: at least one relationship must be selected (non-empty string)
+    const hasRelationship = 
+      (formData.empresa_id && formData.empresa_id !== "") ||
+      (formData.evento_id && formData.evento_id !== "") ||
+      (formData.formacion_id && formData.formacion_id !== "") ||
+      (formData.asesoramiento_id && formData.asesoramiento_id !== "");
+    
     if (!hasRelationship) {
       setValidationError("Debe vincular la evidencia al menos a una entidad (empresa, evento, formación o asesoramiento)");
       return;
