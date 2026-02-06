@@ -20,6 +20,18 @@ type Evento = Database["public"]["Tables"]["eventos"]["Row"];
 type Formacion = Database["public"]["Tables"]["formaciones"]["Row"];
 type Evidencia = Database["public"]["Tables"]["evidencias"]["Row"];
 type Asesoramiento = Database["public"]["Tables"]["asesoramientos"]["Row"];
+type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
+
+type EvidenciaWithRelations = Evidencia & {
+  empresa?: { nombre: string } | null;
+  evento?: { nombre: string } | null;
+  formacion?: { titulo: string } | null;
+  asesoramiento?: { tema: string | null } | null;
+};
+
+type AsesoramientoWithEmpresa = Asesoramiento & {
+  empresa?: { nombre: string } | null;
+};
 
 type ActivityType = "evento" | "formacion" | "evidencia" | "asesoramiento";
 
@@ -31,7 +43,7 @@ interface ActivityItem {
   summary: string;
   relatedEntity?: string;
   detailUrl: string;
-  rawData: Evento | Formacion | Evidencia | Asesoramiento;
+  rawData: Evento | Formacion | EvidenciaWithRelations | AsesoramientoWithEmpresa;
 }
 
 const activityTypeLabels: Record<ActivityType, string> = {
@@ -124,7 +136,7 @@ export default function Actividades() {
 
       // Process Evidencias
       if (results[2].status === "fulfilled" && results[2].value.data) {
-        results[2].value.data.forEach((evidencia: any) => {
+        results[2].value.data.forEach((evidencia: EvidenciaWithRelations) => {
           let relatedEntity = evidencia.empresa?.nombre;
           if (evidencia.evento) {
             relatedEntity = `Evento: ${evidencia.evento.nombre}`;
@@ -151,7 +163,7 @@ export default function Actividades() {
 
       // Process Asesoramientos
       if (results[3].status === "fulfilled" && results[3].value.data) {
-        results[3].value.data.forEach((asesoramiento: any) => {
+        results[3].value.data.forEach((asesoramiento: AsesoramientoWithEmpresa) => {
           items.push({
             id: asesoramiento.id,
             type: "asesoramiento",
