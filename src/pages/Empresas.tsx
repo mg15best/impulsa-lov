@@ -176,14 +176,40 @@ export default function Empresas() {
     e.preventDefault();
     if (!user || !supabase) return;
 
-    setSaving(true);
-    
-    // Separate compliance fields from company data
+    // Validate compliance fields
     const {
       data_protection_consent,
       data_consent_date,
       image_rights_consent,
       image_consent_date,
+    } = formData;
+
+    if (data_protection_consent && !data_consent_date) {
+      toast({ 
+        title: "Error de validación", 
+        description: "Debe proporcionar la fecha de consentimiento de protección de datos.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    if (image_rights_consent && !image_consent_date) {
+      toast({ 
+        title: "Error de validación", 
+        description: "Debe proporcionar la fecha de consentimiento de derechos de imagen.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    setSaving(true);
+    
+    // Separate compliance fields from company data
+    const {
+      data_protection_consent: _dpc,
+      data_consent_date: _dcd,
+      image_rights_consent: _irc,
+      image_consent_date: _icd,
       ...companyData
     } = formData;
     
@@ -216,17 +242,35 @@ export default function Empresas() {
       });
 
     if (complianceError) {
-      // Log error but don't fail the whole operation
+      // Compliance creation failed - attempt to rollback by deleting the company
       console.error("Error creating compliance record:", complianceError);
-      toast({ 
-        title: "Empresa creada", 
-        description: "La empresa se ha creado, pero hubo un problema guardando los consentimientos.", 
-        variant: "destructive" 
-      });
-    } else {
-      toast({ title: "Empresa creada", description: "La empresa se ha registrado correctamente." });
+      
+      const { error: deleteError } = await supabase
+        .from("empresas")
+        .delete()
+        .eq("id", newCompany.id);
+      
+      if (deleteError) {
+        console.error("Error rolling back company creation:", deleteError);
+        toast({ 
+          title: "Error crítico", 
+          description: "No se pudo crear la empresa con sus consentimientos. Por favor, contacte al administrador.", 
+          variant: "destructive" 
+        });
+      } else {
+        toast({ 
+          title: "Error al crear consentimientos", 
+          description: "No se pudieron guardar los consentimientos. Por favor, intente nuevamente.", 
+          variant: "destructive" 
+        });
+      }
+      
+      setSaving(false);
+      return;
     }
     
+    // Success
+    toast({ title: "Empresa creada", description: "La empresa se ha registrado correctamente." });
     setDialogOpen(false);
     setFormData(initialFormData);
     reload();
@@ -473,13 +517,17 @@ export default function Empresas() {
                       </Label>
                     </div>
                     <div className="space-y-2 ml-6">
-                      <Label htmlFor="data_consent_date">Fecha de Consentimiento de Datos</Label>
+                      <Label htmlFor="data_consent_date">
+                        Fecha de Consentimiento de Datos
+                        {formData.data_protection_consent && <span className="text-destructive ml-1">*</span>}
+                      </Label>
                       <Input
                         id="data_consent_date"
                         type="date"
                         value={formData.data_consent_date}
                         onChange={(e) => setFormData({ ...formData, data_consent_date: e.target.value })}
                         disabled={!formData.data_protection_consent}
+                        required={formData.data_protection_consent}
                       />
                     </div>
                   </div>
@@ -497,13 +545,17 @@ export default function Empresas() {
                       </Label>
                     </div>
                     <div className="space-y-2 ml-6">
-                      <Label htmlFor="image_consent_date">Fecha de Consentimiento de Imagen</Label>
+                      <Label htmlFor="image_consent_date">
+                        Fecha de Consentimiento de Imagen
+                        {formData.image_rights_consent && <span className="text-destructive ml-1">*</span>}
+                      </Label>
                       <Input
                         id="image_consent_date"
                         type="date"
                         value={formData.image_consent_date}
                         onChange={(e) => setFormData({ ...formData, image_consent_date: e.target.value })}
                         disabled={!formData.image_rights_consent}
+                        required={formData.image_rights_consent}
                       />
                     </div>
                   </div>
