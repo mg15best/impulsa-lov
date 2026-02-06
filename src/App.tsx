@@ -15,6 +15,7 @@ import Eventos from "./pages/Eventos";
 import Formaciones from "./pages/Formaciones";
 import Evidencias from "./pages/Evidencias";
 import Colaboradores from "./pages/Colaboradores";
+import Actividades from "./pages/Actividades";
 import Configuracion from "./pages/Configuracion";
 import Integraciones from "./pages/Integraciones";
 import NotFound from "./pages/NotFound";
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/empresas" element={<Empresas />} />
               <Route path="/contactos" element={<Contactos />} />
               <Route path="/asesoramientos" element={<Asesoramientos />} />
+              <Route path="/actividades" element={<Actividades />} />
               <Route path="/eventos" element={<Eventos />} />
               <Route path="/formaciones" element={<Formaciones />} />
               <Route path="/evidencias" element={<Evidencias />} />

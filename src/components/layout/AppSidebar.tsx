@@ -10,7 +10,8 @@ import {
   Plug,
   Settings,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Activity
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,7 @@ const mainNavItems = [
 ];
 
 const activityNavItems = [
+  { title: "Ver todo", url: "/actividades", icon: Activity },
   { title: "Eventos", url: "/eventos", icon: Calendar },
   { title: "Formaciones", url: "/formaciones", icon: GraduationCap },
   { title: "Evidencias", url: "/evidencias", icon: FileText },
