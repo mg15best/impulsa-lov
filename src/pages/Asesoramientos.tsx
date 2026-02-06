@@ -74,22 +74,18 @@ export default function Asesoramientos() {
       .order("nombre");
     setEmpresas(empresasData || []);
 
-    // Check for empresa_id from URL params
-    const empresaIdParam = searchParams.get("empresa_id");
-    if (empresaIdParam && filterEstado === "all") {
-      // Note: We don't have a filterEmpresa state in Asesoramientos,
-      // but we can still filter the query by empresa_id from URL
-    }
-
-    // Fetch asesoramientos
+    // Fetch asesoramientos with filters
     let query = supabase
       .from("asesoramientos")
       .select("*, empresa:empresas(*)")
       .order("fecha", { ascending: false });
 
+    const empresaIdParam = searchParams.get("empresa_id");
     if (empresaIdParam) {
       query = query.eq("empresa_id", empresaIdParam);
-    } else if (filterEstado && filterEstado !== "all") {
+    }
+    
+    if (filterEstado && filterEstado !== "all") {
       query = query.eq("estado", filterEstado as EstadoAsesoramiento);
     }
 

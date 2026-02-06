@@ -59,12 +59,6 @@ export default function Contactos() {
       .order("nombre");
     setEmpresas(empresasData || []);
 
-    // Check for empresa_id from URL params
-    const empresaIdParam = searchParams.get("empresa_id");
-    if (empresaIdParam && filterEmpresa === "all") {
-      setFilterEmpresa(empresaIdParam);
-    }
-
     // Fetch contactos
     let query = supabase
       .from("contactos")
@@ -83,6 +77,15 @@ export default function Contactos() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    // Check for empresa_id from URL params and set filter
+    const empresaIdParam = searchParams.get("empresa_id");
+    if (empresaIdParam && filterEmpresa === "all") {
+      setFilterEmpresa(empresaIdParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     fetchData();
