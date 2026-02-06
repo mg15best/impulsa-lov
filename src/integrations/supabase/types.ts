@@ -247,6 +247,53 @@ export type Database = {
           },
         ]
       }
+      company_compliance: {
+        Row: {
+          id: string
+          company_id: string
+          data_protection_consent: boolean | null
+          data_consent_date: string | null
+          image_rights_consent: boolean | null
+          image_consent_date: string | null
+          created_at: string
+          updated_at: string
+          created_by: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          data_protection_consent?: boolean | null
+          data_consent_date?: string | null
+          image_rights_consent?: boolean | null
+          image_consent_date?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          data_protection_consent?: boolean | null
+          data_consent_date?: string | null
+          image_rights_consent?: boolean | null
+          image_consent_date?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_compliance_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresas: {
         Row: {
           cif: string | null
