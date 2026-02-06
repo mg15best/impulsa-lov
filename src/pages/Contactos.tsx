@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
-import { Plus, Search, Users, Loader2, Building2, ArrowRight } from "lucide-react";
+import { Plus, Search, Users, Loader2, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -263,37 +263,10 @@ export default function Contactos() {
                   Para gestionar contactos, primero debes registrar al menos una empresa
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button onClick={() => navigate("/empresas")} variant="outline">
-                  <Building2 className="mr-2 h-4 w-4" />
-                  Ir a Empresas
-                </Button>
-                {canWrite && (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Crear Primera Empresa
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
-                      <DialogHeader>
-                        <DialogTitle>Registrar Nueva Empresa</DialogTitle>
-                        <DialogDescription>
-                          Registra la primera empresa para poder gestionar contactos
-                        </DialogDescription>
-                      </DialogHeader>
-                      <p className="text-sm text-muted-foreground">
-                        Por favor, ve a la página de Empresas para registrar empresas.
-                      </p>
-                      <Button onClick={() => navigate("/empresas")}>
-                        <ArrowRight className="mr-2 h-4 w-4" />
-                        Ir a Empresas
-                      </Button>
-                    </DialogContent>
-                  </Dialog>
-                )}
-              </div>
+              <Button onClick={() => navigate("/empresas")}>
+                <Building2 className="mr-2 h-4 w-4" />
+                Ir a Empresas
+              </Button>
             </div>
           ) : (
             <div className="flex flex-wrap gap-4">

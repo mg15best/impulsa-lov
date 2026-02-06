@@ -125,18 +125,30 @@ export default function Empresas() {
     setSelectedEmpresa(empresa);
     
     // Fetch counts for contactos and asesoramientos
-    const { count: contactosCount } = await supabase
+    const { count: contactosCount, error: contactosError } = await supabase
       .from("contactos")
       .select("*", { count: "exact", head: true })
       .eq("empresa_id", empresa.id);
     
-    const { count: asesoramientosCount } = await supabase
+    if (contactosError) {
+      toast({ title: "Error", description: "No se pudo obtener el conteo de contactos", variant: "destructive" });
+      setContactosCount(0);
+    } else {
+      setContactosCount(contactosCount || 0);
+    }
+    
+    const { count: asesoramientosCount, error: asesoramientosError } = await supabase
       .from("asesoramientos")
       .select("*", { count: "exact", head: true })
       .eq("empresa_id", empresa.id);
     
-    setContactosCount(contactosCount || 0);
-    setAsesoramientosCount(asesoramientosCount || 0);
+    if (asesoramientosError) {
+      toast({ title: "Error", description: "No se pudo obtener el conteo de asesoramientos", variant: "destructive" });
+      setAsesoramientosCount(0);
+    } else {
+      setAsesoramientosCount(asesoramientosCount || 0);
+    }
+    
     setRelatedDialogOpen(true);
   };
 
