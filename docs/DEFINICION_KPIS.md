@@ -591,7 +591,7 @@ interface KPIData {
   value: number;
   target: number;
   percentage: number;
-  trend?: 'up' | 'down' | 'stable';
+  trend?: 'up' | 'down' | 'stable'; // Reserved for future use - compare with historical values
 }
 
 async function calculateKPIs(): Promise<KPIData[]> {
@@ -665,22 +665,30 @@ async function calculateKPIs(): Promise<KPIData[]> {
   });
   
   // KPI 6: Impactos de Difusión
-  const { data: evidenciasDifusion } = await supabase
+  // Note: This requires two separate queries due to optional relationships
+  const { data: evidenciasEventos } = await supabase
     .from('evidencias')
-    .select(`
-      id,
-      tipo,
-      eventos!inner(estado),
-      formaciones!inner(estado)
-    `)
+    .select('id, eventos!inner(estado)')
     .in('tipo', ['fotografia', 'video', 'otro'])
-    .or('eventos.estado.eq.completado,formaciones.estado.eq.completada');
+    .eq('eventos.estado', 'completado');
+  
+  const { data: evidenciasFormaciones } = await supabase
+    .from('evidencias')
+    .select('id, formaciones!inner(estado)')
+    .in('tipo', ['fotografia', 'video', 'otro'])
+    .eq('formaciones.estado', 'completada');
+  
+  // Combine and deduplicate by ID
+  const evidenciaIds = new Set([
+    ...(evidenciasEventos?.map(e => e.id) || []),
+    ...(evidenciasFormaciones?.map(e => e.id) || [])
+  ]);
   
   kpis.push({
     label: 'Impactos de difusión',
-    value: evidenciasDifusion?.length || 0,
+    value: evidenciaIds.size,
     target: 15,
-    percentage: Math.min(((evidenciasDifusion?.length || 0) / 15) * 100, 100)
+    percentage: Math.min((evidenciaIds.size / 15) * 100, 100)
   });
   
   // KPI 7: Material de Apoyo
