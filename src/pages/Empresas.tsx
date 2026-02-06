@@ -23,6 +23,7 @@ type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
 type SectorEmpresa = Database["public"]["Enums"]["sector_empresa"];
 type EstadoEmpresa = Database["public"]["Enums"]["estado_empresa"];
 type FaseMadurez = Database["public"]["Enums"]["fase_madurez"];
+type Json = Database["public"]["Tables"]["empresas"]["Row"]["redes_sociales"];
 
 const sectorLabels: Record<SectorEmpresa, string> = {
   tecnologia: "Tecnología",
@@ -116,7 +117,7 @@ export default function Empresas() {
     telefono: "",
     email: "",
     web: "",
-    redes_sociales: {} as Record<string, string>,
+    redes_sociales: null as Json | null,
     contacto_principal: "",
     fecha_constitucion: "",
     codigo_estado_pipeline: "",
@@ -196,7 +197,7 @@ export default function Empresas() {
         telefono: "",
         email: "",
         web: "",
-        redes_sociales: {},
+        redes_sociales: null,
         contacto_principal: "",
         fecha_constitucion: "",
         codigo_estado_pipeline: "",
