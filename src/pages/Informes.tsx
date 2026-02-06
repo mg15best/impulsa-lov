@@ -145,6 +145,16 @@ export default function Informes() {
     e.preventDefault();
     if (!supabase || !user) return;
 
+    // Validate required fields
+    if (!formData.title.trim()) {
+      toast({ title: "Error", description: "El título es obligatorio", variant: "destructive" });
+      return;
+    }
+    if (!formData.company_id) {
+      toast({ title: "Error", description: "La empresa es obligatoria", variant: "destructive" });
+      return;
+    }
+
     setSaving(true);
 
     try {
