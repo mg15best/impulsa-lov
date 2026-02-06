@@ -91,7 +91,7 @@ export default function Evidencias() {
         supabase.from("empresas").select("id, nombre").order("nombre"),
         supabase.from("eventos").select("id, nombre").order("nombre"),
         supabase.from("formaciones").select("id, titulo").order("titulo"),
-        supabase.from("asesoramientos").select("id, tema, empresa:empresas(nombre)").order("fecha", { ascending: false }),
+        supabase.from("asesoramientos").select("id, tema, fecha, empresa:empresas(nombre)").order("fecha", { ascending: false }),
       ]);
 
       if (empresasResult.data) setEmpresas(empresasResult.data);
@@ -146,6 +146,11 @@ export default function Evidencias() {
     asesoramiento_id: "",
   });
 
+  // Helper to convert empty strings to null
+  const toNullIfEmpty = (value: string): string | null => {
+    return value === "" ? null : value;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !supabase) return;
@@ -164,15 +169,15 @@ export default function Evidencias() {
     const dataToInsert = {
       titulo: formData.titulo,
       tipo: formData.tipo,
-      descripcion: formData.descripcion || null,
+      descripcion: toNullIfEmpty(formData.descripcion),
       fecha: formData.fecha,
-      archivo_url: formData.archivo_url || null,
-      archivo_nombre: formData.archivo_nombre || null,
-      observaciones: formData.observaciones || null,
-      empresa_id: formData.empresa_id || null,
-      evento_id: formData.evento_id || null,
-      formacion_id: formData.formacion_id || null,
-      asesoramiento_id: formData.asesoramiento_id || null,
+      archivo_url: toNullIfEmpty(formData.archivo_url),
+      archivo_nombre: toNullIfEmpty(formData.archivo_nombre),
+      observaciones: toNullIfEmpty(formData.observaciones),
+      empresa_id: toNullIfEmpty(formData.empresa_id),
+      evento_id: toNullIfEmpty(formData.evento_id),
+      formacion_id: toNullIfEmpty(formData.formacion_id),
+      asesoramiento_id: toNullIfEmpty(formData.asesoramiento_id),
       created_by: user.id,
     };
 
@@ -222,7 +227,12 @@ export default function Evidencias() {
             Sistema de documentación y justificación
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setValidationError(null);
+          }
+        }}>
           <DialogTrigger asChild>
             <PermissionButton action="create">
               <Plus className="mr-2 h-4 w-4" />
@@ -405,7 +415,7 @@ export default function Evidencias() {
                         <SelectItem value="">Sin asesoramiento</SelectItem>
                         {asesoramientos.map((asesoramiento) => (
                           <SelectItem key={asesoramiento.id} value={asesoramiento.id}>
-                            {asesoramiento.tema || "Asesoramiento sin tema"} - {asesoramiento.empresa?.nombre || "Sin empresa"}
+                            {asesoramiento.tema || "Sin tema"} ({asesoramiento.empresa?.nombre || "Sin empresa"})
                           </SelectItem>
                         ))}
                       </SelectContent>
