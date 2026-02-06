@@ -126,12 +126,14 @@ The compliance fields are presented in a dedicated section titled "Consentimient
 2. **Date Fields**:
    - Disabled when the corresponding checkbox is unchecked
    - Enabled and required when checkbox is checked
+   - Visual indicator (*) appears when required
    - Indented to show hierarchical relationship
 
 3. **Validation**:
-   - No validation is enforced at the UI level
-   - Both checkboxes and dates are optional
-   - Dates can be left empty even when checkbox is checked
+   - Form validation ensures that when a consent checkbox is checked, the corresponding date must be provided
+   - Both checkboxes are optional (user can create a company without any consents)
+   - If a checkbox is checked, its corresponding date field is required
+   - Validation errors display toast messages to the user
 
 ## Data Flow
 
@@ -139,15 +141,26 @@ The compliance fields are presented in a dedicated section titled "Consentimient
 
 1. User fills out the company form including the "Consentimientos" section
 2. On form submission:
-   a. Company data is inserted into `empresas` table
-   b. If successful, compliance data is inserted into `company_compliance` table with the new company's ID
-   c. If compliance insert fails, the operation logs an error but doesn't rollback the company creation
+   a. Form validates that required dates are provided when consent checkboxes are checked
+   b. Company data is inserted into `empresas` table
+   c. If successful, compliance data is inserted into `company_compliance` table with the new company's ID
+   d. If compliance insert fails, the company record is automatically deleted (rollback) to maintain data consistency
 3. Success/error toast messages are displayed to the user
 
 **Code Flow:**
 
 ```typescript
-// 1. Separate compliance fields from company data
+// 1. Validate compliance fields
+if (data_protection_consent && !data_consent_date) {
+  // Show validation error
+  return;
+}
+if (image_rights_consent && !image_consent_date) {
+  // Show validation error
+  return;
+}
+
+// 2. Separate compliance fields from company data
 const {
   data_protection_consent,
   data_consent_date,
@@ -156,14 +169,14 @@ const {
   ...companyData
 } = formData;
 
-// 2. Insert company
+// 3. Insert company
 const { data: newCompany, error: companyError } = await supabase
   .from("empresas")
   .insert({ ...companyData, created_by: user.id })
   .select()
   .single();
 
-// 3. Insert compliance record
+// 4. Insert compliance record
 const { error: complianceError } = await supabase
   .from("company_compliance")
   .insert({
@@ -174,12 +187,20 @@ const { error: complianceError } = await supabase
     image_consent_date: image_consent_date || null,
     created_by: user.id,
   });
+
+// 5. Rollback if compliance creation fails
+if (complianceError) {
+  await supabase.from("empresas").delete().eq("id", newCompany.id);
+  // Show error message
+  return;
+}
 ```
 
 ### Error Handling
 
+- **Validation Fails**: User sees validation error message, form stays open, no data is saved
 - **Company Creation Fails**: User sees error message, form stays open, no data is saved
-- **Compliance Creation Fails**: User sees a warning message indicating company was created but consents weren't saved
+- **Compliance Creation Fails**: Company is automatically deleted (rollback), user sees error message, form stays open
 - This approach ensures company data is not lost due to compliance record failures
 
 ## TypeScript Types
