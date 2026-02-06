@@ -20,18 +20,13 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
+import { useCatalogLookup, resolveLabelFromLookup } from "@/hooks/useCatalog";
 
 type Asesoramiento = Database["public"]["Tables"]["asesoramientos"]["Row"];
 type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
 type EstadoAsesoramiento = Database["public"]["Enums"]["estado_asesoramiento"];
 
-const estadoLabels: Record<EstadoAsesoramiento, string> = {
-  programado: "Programado",
-  en_curso: "En curso",
-  completado: "Completado",
-  cancelado: "Cancelado",
-};
-
+// Estado colors remain local as they're UI presentation logic, not catalog data
 const estadoColors: Record<EstadoAsesoramiento, string> = {
   programado: "bg-info/10 text-info",
   en_curso: "bg-warning/10 text-warning",
@@ -49,6 +44,9 @@ export default function Asesoramientos() {
   const { canWrite } = useUserRoles();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  
+  // Load catalog lookup for consultation statuses
+  const { lookup: estadoLookup, isLoading: estadoLoading } = useCatalogLookup('consultation_statuses');
 
   // Extract empresa_id param to a stable variable
   const empresaIdParam = searchParams.get("empresa_id");
@@ -221,7 +219,7 @@ export default function Asesoramientos() {
                   entityType="asesoramientos"
                   value={formData.estado}
                   onChange={(estado) => setFormData({ ...formData, estado })}
-                  estadoLabels={estadoLabels}
+                  estadoLabels={Object.fromEntries(estadoLookup) as Record<EstadoAsesoramiento, string>}
                 />
               </div>
               <div className="space-y-2">
@@ -286,8 +284,8 @@ export default function Asesoramientos() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos los estados</SelectItem>
-                  {Object.entries(estadoLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
+                  {Array.from(estadoLookup.entries()).map(([code, label]) => (
+                    <SelectItem key={code} value={code}>
                       {label}
                     </SelectItem>
                   ))}
@@ -354,7 +352,7 @@ export default function Asesoramientos() {
                     <TableCell>{asesoramiento.duracion_minutos} min</TableCell>
                     <TableCell>
                       <Badge className={estadoColors[asesoramiento.estado]}>
-                        {estadoLabels[asesoramiento.estado]}
+                        {resolveLabelFromLookup(estadoLookup, asesoramiento.estado)}
                       </Badge>
                     </TableCell>
                     <TableCell>

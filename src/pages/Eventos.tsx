@@ -17,28 +17,14 @@ import { PermissionButton } from "@/components/PermissionButton";
 import { EstadoSelector } from "@/components/EstadoSelector";
 import { Plus, Search, Calendar, Filter, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { useCatalogLookup, resolveLabelFromLookup } from "@/hooks/useCatalog";
+import { CatalogSelect } from "@/components/CatalogSelect";
 
 type Evento = Database["public"]["Tables"]["eventos"]["Row"];
 type TipoEvento = Database["public"]["Enums"]["tipo_evento"];
 type EstadoEvento = Database["public"]["Enums"]["estado_evento"];
 
-const tipoLabels: Record<TipoEvento, string> = {
-  taller: "Taller",
-  seminario: "Seminario",
-  networking: "Networking",
-  conferencia: "Conferencia",
-  presentacion: "Presentación",
-  otro: "Otro",
-};
-
-const estadoLabels: Record<EstadoEvento, string> = {
-  planificado: "Planificado",
-  confirmado: "Confirmado",
-  en_curso: "En curso",
-  completado: "Completado",
-  cancelado: "Cancelado",
-};
-
+// Estado colors remain local as they're UI presentation logic, not catalog data
 const estadoColors: Record<EstadoEvento, string> = {
   planificado: "bg-muted text-muted-foreground",
   confirmado: "bg-info/10 text-info",
@@ -56,6 +42,10 @@ export default function Eventos() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
+  
+  // Load catalog lookups for event types and statuses
+  const { lookup: tipoLookup, isLoading: tipoLoading } = useCatalogLookup('event_types');
+  const { lookup: estadoLookup, isLoading: estadoLoading } = useCatalogLookup('event_statuses');
 
   // Use the consolidated data loader hook
   const { data: eventos, loading, reload } = useDataLoader<Evento>(
@@ -190,21 +180,11 @@ export default function Eventos() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tipo">Tipo</Label>
-                  <Select
+                  <CatalogSelect
+                    catalogType="event_types"
                     value={formData.tipo}
                     onValueChange={(v) => setFormData({ ...formData, tipo: v as TipoEvento })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(tipoLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -212,7 +192,7 @@ export default function Eventos() {
                   entityType="eventos"
                   value={formData.estado}
                   onChange={(estado) => setFormData({ ...formData, estado })}
-                  estadoLabels={estadoLabels}
+                  estadoLabels={Object.fromEntries(estadoLookup) as Record<EstadoEvento, string>}
                 />
                 <div className="space-y-2">
                   <Label htmlFor="formato">Formato</Label>
@@ -389,8 +369,8 @@ export default function Eventos() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los tipos</SelectItem>
-                {Object.entries(tipoLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
+                {Array.from(tipoLookup.entries()).map(([code, label]) => (
+                  <SelectItem key={code} value={code}>
                     {label}
                   </SelectItem>
                 ))}
@@ -402,8 +382,8 @@ export default function Eventos() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los estados</SelectItem>
-                {Object.entries(estadoLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
+                {Array.from(estadoLookup.entries()).map(([code, label]) => (
+                  <SelectItem key={code} value={code}>
                     {label}
                   </SelectItem>
                 ))}
@@ -453,7 +433,7 @@ export default function Eventos() {
                 {filteredEventos.map((evento) => (
                   <TableRow key={evento.id} className="cursor-pointer hover:bg-muted/50">
                     <TableCell className="font-medium">{evento.nombre}</TableCell>
-                    <TableCell>{tipoLabels[evento.tipo]}</TableCell>
+                    <TableCell>{resolveLabelFromLookup(tipoLookup, evento.tipo)}</TableCell>
                     <TableCell>{evento.fecha ? new Date(evento.fecha).toLocaleDateString() : "-"}</TableCell>
                     <TableCell>{evento.ubicacion || "-"}</TableCell>
                     <TableCell>
@@ -461,7 +441,7 @@ export default function Eventos() {
                     </TableCell>
                     <TableCell>
                       <Badge className={estadoColors[evento.estado]}>
-                        {estadoLabels[evento.estado]}
+                        {resolveLabelFromLookup(estadoLookup, evento.estado)}
                       </Badge>
                     </TableCell>
                   </TableRow>
