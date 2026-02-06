@@ -13,7 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
-import { Plus, Search, Users, Loader2 } from "lucide-react";
+import { Plus, Search, Users, Loader2, Building2, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
 type Contacto = Database["public"]["Tables"]["contactos"]["Row"];
@@ -30,6 +31,7 @@ export default function Contactos() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -143,7 +145,7 @@ export default function Contactos() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button disabled={!canWrite}>
+            <Button disabled={!canWrite || empresas.length === 0}>
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Contacto
             </Button>
@@ -250,32 +252,77 @@ export default function Contactos() {
       {/* Filtros */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nombre, email o empresa..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
+          {empresas.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+              <Building2 className="h-12 w-12 text-muted-foreground" />
+              <div>
+                <p className="text-lg font-semibold text-muted-foreground">
+                  No hay empresas registradas
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Para gestionar contactos, primero debes registrar al menos una empresa
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => navigate("/empresas")} variant="outline">
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Ir a Empresas
+                </Button>
+                {canWrite && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Crear Primera Empresa
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
+                      <DialogHeader>
+                        <DialogTitle>Registrar Nueva Empresa</DialogTitle>
+                        <DialogDescription>
+                          Registra la primera empresa para poder gestionar contactos
+                        </DialogDescription>
+                      </DialogHeader>
+                      <p className="text-sm text-muted-foreground">
+                        Por favor, ve a la página de Empresas para registrar empresas.
+                      </p>
+                      <Button onClick={() => navigate("/empresas")}>
+                        <ArrowRight className="mr-2 h-4 w-4" />
+                        Ir a Empresas
+                      </Button>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </div>
             </div>
-            <Select value={filterEmpresa} onValueChange={setFilterEmpresa}>
-              <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Filtrar por empresa" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las empresas</SelectItem>
-                {empresas.map((empresa) => (
-                  <SelectItem key={empresa.id} value={empresa.id}>
-                    {empresa.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          ) : (
+            <div className="flex flex-wrap gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nombre, email o empresa..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+              <Select value={filterEmpresa} onValueChange={setFilterEmpresa}>
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Filtrar por empresa" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las empresas</SelectItem>
+                  {empresas.map((empresa) => (
+                    <SelectItem key={empresa.id} value={empresa.id}>
+                      {empresa.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </CardContent>
       </Card>
 

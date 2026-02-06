@@ -12,7 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
-import { Plus, Search, Building2, Filter, Loader2 } from "lucide-react";
+import { Plus, Search, Building2, Filter, Loader2, Users, ClipboardList, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
 type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
@@ -61,9 +62,14 @@ export default function Empresas() {
   const [filterEstado, setFilterEstado] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [selectedEmpresa, setSelectedEmpresa] = useState<Empresa | null>(null);
+  const [relatedDialogOpen, setRelatedDialogOpen] = useState(false);
+  const [contactosCount, setContactosCount] = useState(0);
+  const [asesoramientosCount, setAsesoramientosCount] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -111,6 +117,27 @@ export default function Empresas() {
       setEmpresas(data || []);
     }
     setLoading(false);
+  };
+
+  const handleViewRelated = async (empresa: Empresa) => {
+    if (!supabase) return;
+    
+    setSelectedEmpresa(empresa);
+    
+    // Fetch counts for contactos and asesoramientos
+    const { count: contactosCount } = await supabase
+      .from("contactos")
+      .select("*", { count: "exact", head: true })
+      .eq("empresa_id", empresa.id);
+    
+    const { count: asesoramientosCount } = await supabase
+      .from("asesoramientos")
+      .select("*", { count: "exact", head: true })
+      .eq("empresa_id", empresa.id);
+    
+    setContactosCount(contactosCount || 0);
+    setAsesoramientosCount(asesoramientosCount || 0);
+    setRelatedDialogOpen(true);
   };
 
   useEffect(() => {
@@ -484,7 +511,11 @@ export default function Empresas() {
               </TableHeader>
               <TableBody>
                 {filteredEmpresas.map((empresa) => (
-                  <TableRow key={empresa.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableRow 
+                    key={empresa.id} 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleViewRelated(empresa)}
+                  >
                     <TableCell className="font-medium">
                       <div>{empresa.nombre}</div>
                       {empresa.nombre_comercial && (
@@ -513,6 +544,62 @@ export default function Empresas() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog de entidades relacionadas */}
+      <Dialog open={relatedDialogOpen} onOpenChange={setRelatedDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Entidades Relacionadas</DialogTitle>
+            <DialogDescription>
+              {selectedEmpresa?.nombre}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Card className="cursor-pointer hover:bg-muted/50" onClick={() => {
+              setRelatedDialogOpen(false);
+              navigate(`/contactos`);
+              // Note: In a real implementation, we would pass the empresa_id as a URL param
+              // For now, users can filter by empresa in the Contactos page
+            }}>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Users className="h-8 w-8 text-primary" />
+                    <div>
+                      <p className="font-semibold">Contactos</p>
+                      <p className="text-sm text-muted-foreground">
+                        {contactosCount} {contactosCount === 1 ? "contacto" : "contactos"}
+                      </p>
+                    </div>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="cursor-pointer hover:bg-muted/50" onClick={() => {
+              setRelatedDialogOpen(false);
+              navigate(`/asesoramientos`);
+              // Note: In a real implementation, we would pass the empresa_id as a URL param
+            }}>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <ClipboardList className="h-8 w-8 text-primary" />
+                    <div>
+                      <p className="font-semibold">Asesoramientos</p>
+                      <p className="text-sm text-muted-foreground">
+                        {asesoramientosCount} {asesoramientosCount === 1 ? "asesoramiento" : "asesoramientos"}
+                      </p>
+                    </div>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
