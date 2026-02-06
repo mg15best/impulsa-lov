@@ -49,6 +49,9 @@ export default function Asesoramientos() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // Extract empresa_id param to a stable variable
+  const empresaIdParam = searchParams.get("empresa_id");
+
   // Load empresas for dropdown
   const { data: empresas } = useDataLoader<Empresa>("empresas", (query) => query.order("nombre"), []);
 
@@ -58,7 +61,6 @@ export default function Asesoramientos() {
     (query) => {
       let filteredQuery = query.select("*, empresa:empresas(*)").order("fecha", { ascending: false });
       
-      const empresaIdParam = searchParams.get("empresa_id");
       if (empresaIdParam) {
         filteredQuery = filteredQuery.eq("empresa_id", empresaIdParam);
       }
@@ -69,7 +71,7 @@ export default function Asesoramientos() {
       
       return filteredQuery;
     },
-    [filterEstado, searchParams.get("empresa_id")]
+    [filterEstado, empresaIdParam]
   );
 
   // Use local search hook for filtering

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import type { PostgrestFilterBuilder } from "@supabase/postgrest-js";
@@ -29,6 +29,9 @@ export function useDataLoader<T>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Stringify dependencies to create a stable reference
+  const depsKey = useMemo(() => JSON.stringify(dependencies), [dependencies]);
 
   const fetchData = useCallback(async () => {
     if (!supabase) {
@@ -70,8 +73,9 @@ export function useDataLoader<T>(
     } finally {
       setLoading(false);
     }
+    // depsKey is intentionally included to trigger refetch when dependencies change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tableName, applyFilters, toast, ...dependencies]);
+  }, [tableName, applyFilters, toast, depsKey]);
 
   useEffect(() => {
     fetchData();
