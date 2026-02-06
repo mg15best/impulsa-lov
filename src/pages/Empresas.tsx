@@ -184,6 +184,7 @@ export default function Empresas() {
       image_consent_date,
     } = formData;
 
+    // Validate required dates when consent is checked
     if (data_protection_consent && !data_consent_date) {
       toast({ 
         title: "Error de validación", 
@@ -197,6 +198,27 @@ export default function Empresas() {
       toast({ 
         title: "Error de validación", 
         description: "Debe proporcionar la fecha de consentimiento de derechos de imagen.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Validate dates are not in the future
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (data_consent_date && data_consent_date > today) {
+      toast({ 
+        title: "Error de validación", 
+        description: "La fecha de consentimiento de protección de datos no puede ser futura.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    if (image_consent_date && image_consent_date > today) {
+      toast({ 
+        title: "Error de validación", 
+        description: "La fecha de consentimiento de derechos de imagen no puede ser futura.", 
         variant: "destructive" 
       });
       return;
@@ -243,7 +265,13 @@ export default function Empresas() {
 
     if (complianceError) {
       // Compliance creation failed - attempt to rollback by deleting the company
-      console.error("Error creating compliance record:", complianceError);
+      console.error("Error creating compliance record:", {
+        error: complianceError,
+        companyId: newCompany.id,
+        userId: user.id,
+        companyName: companyData.nombre,
+        timestamp: new Date().toISOString()
+      });
       
       const { error: deleteError } = await supabase
         .from("empresas")
@@ -251,7 +279,12 @@ export default function Empresas() {
         .eq("id", newCompany.id);
       
       if (deleteError) {
-        console.error("Error rolling back company creation:", deleteError);
+        console.error("Error rolling back company creation:", {
+          error: deleteError,
+          companyId: newCompany.id,
+          userId: user.id,
+          timestamp: new Date().toISOString()
+        });
         toast({ 
           title: "Error crítico", 
           description: "No se pudo crear la empresa con sus consentimientos. Por favor, contacte al administrador.", 
