@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, Building2, Filter, Loader2, Users, ClipboardList, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
@@ -227,10 +228,10 @@ export default function Empresas() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button disabled={!canWrite}>
+            <PermissionButton action="create">
               <Plus className="mr-2 h-4 w-4" />
               Nueva Empresa
-            </Button>
+            </PermissionButton>
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
             <DialogHeader>
