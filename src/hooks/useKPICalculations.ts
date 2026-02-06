@@ -81,7 +81,7 @@ export function useKPICalculations() {
         // Origen: tabla evidencias con relaciones a eventos/formaciones
         // Criterio: tipo IN ('fotografia', 'video', 'otro') relacionado con eventos/formaciones completados
         // Fórmula: COUNT(DISTINCT e.id) con JOIN a eventos y formaciones
-        // Nota: Debido a las relaciones opcionales, se hacen dos queries separadas y se deduplicanlos IDs
+        // Nota: Debido a las relaciones opcionales, se hacen dos queries separadas y se deduplicar los IDs
         const { data: evidenciasEventos } = await supabase
           .from("evidencias")
           .select("id, eventos!inner(estado)")

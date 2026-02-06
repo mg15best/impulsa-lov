@@ -94,7 +94,7 @@ Hook personalizado que:
 **KPI 6 - Impactos de Difusión:**
 ```typescript
 // Debido a relaciones opcionales con eventos/formaciones,
-// se ejecutan dos queries separadas y se deduplicanlos IDs
+// se ejecutan dos queries separadas y se deduplicar los IDs
 const evidenciasEventos = // Query para evidencias con eventos
 const evidenciasFormaciones = // Query para evidencias con formaciones
 const evidenciaIds = new Set([...]) // Deduplicación
