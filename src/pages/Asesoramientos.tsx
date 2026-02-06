@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, ClipboardList, Loader2, Calendar, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -164,10 +165,14 @@ export default function Asesoramientos() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button disabled={!canWrite || empresas.length === 0}>
+            <PermissionButton 
+              action="create"
+              additionalDisabled={empresas.length === 0}
+              additionalDisabledMessage="Primero debes crear al menos una empresa"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Asesoramiento
-            </Button>
+            </PermissionButton>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>

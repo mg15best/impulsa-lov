@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, Users, Loader2, Building2 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
@@ -154,10 +155,14 @@ export default function Contactos() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button disabled={!canWrite || empresas.length === 0}>
+            <PermissionButton 
+              action="create"
+              additionalDisabled={empresas.length === 0}
+              additionalDisabledMessage="Primero debes crear al menos una empresa"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Contacto
-            </Button>
+            </PermissionButton>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>

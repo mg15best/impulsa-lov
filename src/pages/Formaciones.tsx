@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, GraduationCap, Filter, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -171,10 +172,10 @@ export default function Formaciones() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button disabled={!canWrite}>
+            <PermissionButton action="create">
               <Plus className="mr-2 h-4 w-4" />
               Nueva Formación
-            </Button>
+            </PermissionButton>
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
             <DialogHeader>
