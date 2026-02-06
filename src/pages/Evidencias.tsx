@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,11 +14,22 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
-import { Plus, Search, FileText, Filter, Loader2 } from "lucide-react";
+import { Plus, Search, FileText, Filter, Loader2, AlertCircle } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Evidencia = Database["public"]["Tables"]["evidencias"]["Row"];
 type TipoEvidencia = Database["public"]["Enums"]["tipo_evidencia"];
+type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
+type Evento = Database["public"]["Tables"]["eventos"]["Row"];
+type Formacion = Database["public"]["Tables"]["formaciones"]["Row"];
+type Asesoramiento = Database["public"]["Tables"]["asesoramientos"]["Row"];
+
+type EvidenciaWithRelations = Evidencia & {
+  empresa?: { nombre: string } | null;
+  evento?: { nombre: string } | null;
+  formacion?: { titulo: string } | null;
+  asesoramiento?: { tema: string | null } | null;
+};
 
 const tipoLabels: Record<TipoEvidencia, string> = {
   informe: "Informe",
@@ -45,15 +56,22 @@ export default function Evidencias() {
   const [filterTipo, setFilterTipo] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [formaciones, setFormaciones] = useState<Formacion[]>([]);
+  const [asesoramientos, setAsesoramientos] = useState<Asesoramiento[]>([]);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
 
-  // Use the consolidated data loader hook
-  const { data: evidencias, loading, reload } = useDataLoader<Evidencia>(
+  // Use the consolidated data loader hook with relations
+  const { data: evidencias, loading, reload } = useDataLoader<EvidenciaWithRelations>(
     "evidencias",
     (query) => {
-      let filteredQuery = query.order("fecha", { ascending: false });
+      let filteredQuery = query
+        .select("*, empresa:empresas(nombre), evento:eventos(nombre), formacion:formaciones(titulo), asesoramiento:asesoramientos(tema)")
+        .order("fecha", { ascending: false });
       
       if (filterTipo && filterTipo !== "all") {
         filteredQuery = filteredQuery.eq("tipo", filterTipo as TipoEvidencia);
@@ -64,6 +82,27 @@ export default function Evidencias() {
     [filterTipo]
   );
 
+  // Load related entities for selectors
+  useEffect(() => {
+    const loadRelatedEntities = async () => {
+      if (!supabase) return;
+
+      const [empresasResult, eventosResult, formacionesResult, asesoramientosResult] = await Promise.all([
+        supabase.from("empresas").select("id, nombre").order("nombre"),
+        supabase.from("eventos").select("id, nombre").order("nombre"),
+        supabase.from("formaciones").select("id, titulo").order("titulo"),
+        supabase.from("asesoramientos").select("id, tema, empresa:empresas(nombre)").order("fecha", { ascending: false }),
+      ]);
+
+      if (empresasResult.data) setEmpresas(empresasResult.data);
+      if (eventosResult.data) setEventos(eventosResult.data);
+      if (formacionesResult.data) setFormaciones(formacionesResult.data);
+      if (asesoramientosResult.data) setAsesoramientos(asesoramientosResult.data);
+    };
+
+    loadRelatedEntities();
+  }, []);
+
   // Use local search hook for filtering
   const filteredEvidencias = useLocalSearch(
     evidencias,
@@ -73,6 +112,26 @@ export default function Evidencias() {
       evidencia.descripcion?.toLowerCase().includes(term)
   );
 
+  // Helper function to get origin display text
+  const getOrigenDisplay = (evidencia: EvidenciaWithRelations): string => {
+    const origenes: string[] = [];
+    
+    if (evidencia.empresa) {
+      origenes.push(evidencia.empresa.nombre);
+    }
+    if (evidencia.evento) {
+      origenes.push(`Evento: ${evidencia.evento.nombre}`);
+    }
+    if (evidencia.formacion) {
+      origenes.push(`Formación: ${evidencia.formacion.titulo}`);
+    }
+    if (evidencia.asesoramiento) {
+      origenes.push(`Asesoramiento: ${evidencia.asesoramiento.tema || "Sin tema"}`);
+    }
+    
+    return origenes.length > 0 ? origenes.join(", ") : "Sin origen vinculado";
+  };
+
   const [formData, setFormData] = useState({
     titulo: "",
     tipo: "documento" as TipoEvidencia,
@@ -81,17 +140,43 @@ export default function Evidencias() {
     archivo_url: "",
     archivo_nombre: "",
     observaciones: "",
+    empresa_id: "",
+    evento_id: "",
+    formacion_id: "",
+    asesoramiento_id: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !supabase) return;
 
+    // Validation: at least one relationship must be selected
+    const hasRelationship = formData.empresa_id || formData.evento_id || formData.formacion_id || formData.asesoramiento_id;
+    if (!hasRelationship) {
+      setValidationError("Debe vincular la evidencia al menos a una entidad (empresa, evento, formación o asesoramiento)");
+      return;
+    }
+
+    setValidationError(null);
     setSaving(true);
-    const { error } = await supabase.from("evidencias").insert({
-      ...formData,
+    
+    // Prepare data - convert empty strings to null for foreign keys
+    const dataToInsert = {
+      titulo: formData.titulo,
+      tipo: formData.tipo,
+      descripcion: formData.descripcion || null,
+      fecha: formData.fecha,
+      archivo_url: formData.archivo_url || null,
+      archivo_nombre: formData.archivo_nombre || null,
+      observaciones: formData.observaciones || null,
+      empresa_id: formData.empresa_id || null,
+      evento_id: formData.evento_id || null,
+      formacion_id: formData.formacion_id || null,
+      asesoramiento_id: formData.asesoramiento_id || null,
       created_by: user.id,
-    });
+    };
+
+    const { error } = await supabase.from("evidencias").insert(dataToInsert);
 
     if (error) {
       toast({ title: "Error al crear evidencia", description: error.message, variant: "destructive" });
@@ -106,7 +191,12 @@ export default function Evidencias() {
         archivo_url: "",
         archivo_nombre: "",
         observaciones: "",
+        empresa_id: "",
+        evento_id: "",
+        formacion_id: "",
+        asesoramiento_id: "",
       });
+      setValidationError(null);
       reload();
     }
     setSaving(false);
@@ -147,6 +237,12 @@ export default function Evidencias() {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {validationError && (
+                <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <p>{validationError}</p>
+                </div>
+              )}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="titulo">Título *</Label>
@@ -225,6 +321,99 @@ export default function Evidencias() {
                   rows={2}
                 />
               </div>
+              
+              {/* Origin/Relationship Section */}
+              <div className="space-y-4 rounded-md border p-4">
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Vinculación de la Evidencia *</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Seleccione al menos una entidad a la que esté vinculada esta evidencia
+                  </p>
+                </div>
+                
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="empresa_id">Empresa</Label>
+                    <Select
+                      value={formData.empresa_id}
+                      onValueChange={(v) => setFormData({ ...formData, empresa_id: v })}
+                    >
+                      <SelectTrigger id="empresa_id">
+                        <SelectValue placeholder="Seleccionar empresa..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Sin empresa</SelectItem>
+                        {empresas.map((empresa) => (
+                          <SelectItem key={empresa.id} value={empresa.id}>
+                            {empresa.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="evento_id">Evento</Label>
+                    <Select
+                      value={formData.evento_id}
+                      onValueChange={(v) => setFormData({ ...formData, evento_id: v })}
+                    >
+                      <SelectTrigger id="evento_id">
+                        <SelectValue placeholder="Seleccionar evento..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Sin evento</SelectItem>
+                        {eventos.map((evento) => (
+                          <SelectItem key={evento.id} value={evento.id}>
+                            {evento.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="formacion_id">Formación</Label>
+                    <Select
+                      value={formData.formacion_id}
+                      onValueChange={(v) => setFormData({ ...formData, formacion_id: v })}
+                    >
+                      <SelectTrigger id="formacion_id">
+                        <SelectValue placeholder="Seleccionar formación..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Sin formación</SelectItem>
+                        {formaciones.map((formacion) => (
+                          <SelectItem key={formacion.id} value={formacion.id}>
+                            {formacion.titulo}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="asesoramiento_id">Asesoramiento</Label>
+                    <Select
+                      value={formData.asesoramiento_id}
+                      onValueChange={(v) => setFormData({ ...formData, asesoramiento_id: v })}
+                    >
+                      <SelectTrigger id="asesoramiento_id">
+                        <SelectValue placeholder="Seleccionar asesoramiento..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Sin asesoramiento</SelectItem>
+                        {asesoramientos.map((asesoramiento) => (
+                          <SelectItem key={asesoramiento.id} value={asesoramiento.id}>
+                            {asesoramiento.tema || "Asesoramiento sin tema"} - {asesoramiento.empresa?.nombre || "Sin empresa"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                   Cancelar
@@ -303,6 +492,7 @@ export default function Evidencias() {
                   <TableHead>Título</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Fecha</TableHead>
+                  <TableHead>Origen</TableHead>
                   <TableHead>Archivo</TableHead>
                   <TableHead>Descripción</TableHead>
                 </TableRow>
@@ -317,6 +507,9 @@ export default function Evidencias() {
                       </Badge>
                     </TableCell>
                     <TableCell>{new Date(evidencia.fecha).toLocaleDateString()}</TableCell>
+                    <TableCell className="max-w-xs">
+                      <span className="text-sm">{getOrigenDisplay(evidencia)}</span>
+                    </TableCell>
                     <TableCell>{evidencia.archivo_nombre || "-"}</TableCell>
                     <TableCell className="max-w-xs truncate">
                       {evidencia.descripcion || "-"}
