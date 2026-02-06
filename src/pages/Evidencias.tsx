@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, FileText, Filter, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
@@ -40,8 +41,6 @@ const tipoColors: Record<TipoEvidencia, string> = {
 };
 
 export default function Evidencias() {
-  const [evidencias, setEvidencias] = useState<Evidencia[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -49,6 +48,30 @@ export default function Evidencias() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
+
+  // Use the consolidated data loader hook
+  const { data: evidencias, loading, reload } = useDataLoader<Evidencia>(
+    "evidencias",
+    (query) => {
+      let filteredQuery = query.order("fecha", { ascending: false });
+      
+      if (filterTipo && filterTipo !== "all") {
+        filteredQuery = filteredQuery.eq("tipo", filterTipo as TipoEvidencia);
+      }
+      
+      return filteredQuery;
+    },
+    [filterTipo]
+  );
+
+  // Use local search hook for filtering
+  const filteredEvidencias = useLocalSearch(
+    evidencias,
+    searchTerm,
+    (evidencia, term) =>
+      evidencia.titulo.toLowerCase().includes(term) ||
+      evidencia.descripcion?.toLowerCase().includes(term)
+  );
 
   const [formData, setFormData] = useState({
     titulo: "",
@@ -59,38 +82,6 @@ export default function Evidencias() {
     archivo_nombre: "",
     observaciones: "",
   });
-
-  const fetchEvidencias = async () => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    let query = supabase.from("evidencias").select("*").order("fecha", { ascending: false });
-
-    if (filterTipo && filterTipo !== "all") {
-      query = query.eq("tipo", filterTipo as TipoEvidencia);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      setEvidencias(data || []);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchEvidencias();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterTipo]);
-
-  const filteredEvidencias = evidencias.filter((evidencia) =>
-    evidencia.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    evidencia.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,7 +107,7 @@ export default function Evidencias() {
         archivo_nombre: "",
         observaciones: "",
       });
-      fetchEvidencias();
+      reload();
     }
     setSaving(false);
   };

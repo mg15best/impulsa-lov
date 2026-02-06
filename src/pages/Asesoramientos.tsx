@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, ClipboardList, Loader2, Calendar, Building2 } from "lucide-react";
 import { format } from "date-fns";
@@ -38,9 +39,6 @@ const estadoColors: Record<EstadoAsesoramiento, string> = {
 };
 
 export default function Asesoramientos() {
-  const [asesoramientos, setAsesoramientos] = useState<(Asesoramiento & { empresa?: Empresa })[]>([]);
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -51,6 +49,40 @@ export default function Asesoramientos() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // Extract empresa_id param to a stable variable
+  const empresaIdParam = searchParams.get("empresa_id");
+
+  // Load empresas for dropdown
+  const { data: empresas } = useDataLoader<Empresa>("empresas", (query) => query.order("nombre"), []);
+
+  // Load asesoramientos with filters
+  const { data: asesoramientos, loading, reload } = useDataLoader<Asesoramiento & { empresa?: Empresa }>(
+    "asesoramientos",
+    (query) => {
+      let filteredQuery = query.select("*, empresa:empresas(*)").order("fecha", { ascending: false });
+      
+      if (empresaIdParam) {
+        filteredQuery = filteredQuery.eq("empresa_id", empresaIdParam);
+      }
+      
+      if (filterEstado && filterEstado !== "all") {
+        filteredQuery = filteredQuery.eq("estado", filterEstado as EstadoAsesoramiento);
+      }
+      
+      return filteredQuery;
+    },
+    [filterEstado, empresaIdParam]
+  );
+
+  // Use local search hook for filtering
+  const filteredAsesoramientos = useLocalSearch(
+    asesoramientos,
+    searchTerm,
+    (a, term) =>
+      a.tema?.toLowerCase().includes(term) ||
+      a.empresa?.nombre.toLowerCase().includes(term)
+  );
+
   const [formData, setFormData] = useState({
     empresa_id: "",
     fecha: "",
@@ -59,55 +91,6 @@ export default function Asesoramientos() {
     tema: "",
     estado: "programado" as EstadoAsesoramiento,
   });
-
-  const fetchData = async () => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-
-    // Fetch empresas for the dropdown
-    const { data: empresasData } = await supabase
-      .from("empresas")
-      .select("*")
-      .order("nombre");
-    setEmpresas(empresasData || []);
-
-    // Fetch Asesoramientos with filters
-    let query = supabase
-      .from("asesoramientos")
-      .select("*, empresa:empresas(*)")
-      .order("fecha", { ascending: false });
-
-    const empresaIdParam = searchParams.get("empresa_id");
-    if (empresaIdParam) {
-      query = query.eq("empresa_id", empresaIdParam);
-    }
-    
-    if (filterEstado && filterEstado !== "all") {
-      query = query.eq("estado", filterEstado as EstadoAsesoramiento);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      setAsesoramientos(data || []);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterEstado]);
-
-  const filteredAsesoramientos = asesoramientos.filter((a) =>
-    a.tema?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.empresa?.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,7 +121,7 @@ export default function Asesoramientos() {
         tema: "",
         estado: "programado",
       });
-      fetchData();
+      reload();
     }
     setSaving(false);
   };

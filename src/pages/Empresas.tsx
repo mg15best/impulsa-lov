@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, Building2, Filter, Loader2, Users, ClipboardList, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -56,8 +57,6 @@ const estadoColors: Record<EstadoEmpresa, string> = {
 };
 
 export default function Empresas() {
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSector, setFilterSector] = useState<string>("all");
   const [filterEstado, setFilterEstado] = useState<string>("all");
@@ -71,6 +70,33 @@ export default function Empresas() {
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
   const navigate = useNavigate();
+
+  // Use the consolidated data loader hook
+  const { data: empresas, loading, reload } = useDataLoader<Empresa>(
+    "empresas",
+    (query) => {
+      let filteredQuery = query.order("created_at", { ascending: false });
+      
+      if (filterSector && filterSector !== "all") {
+        filteredQuery = filteredQuery.eq("sector", filterSector as SectorEmpresa);
+      }
+      if (filterEstado && filterEstado !== "all") {
+        filteredQuery = filteredQuery.eq("estado", filterEstado as EstadoEmpresa);
+      }
+      
+      return filteredQuery;
+    },
+    [filterSector, filterEstado]
+  );
+
+  // Use local search hook for filtering
+  const filteredEmpresas = useLocalSearch(
+    empresas,
+    searchTerm,
+    (empresa, term) =>
+      empresa.nombre.toLowerCase().includes(term) ||
+      empresa.cif?.toLowerCase().includes(term)
+  );
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -94,31 +120,6 @@ export default function Empresas() {
     codigo_origen_lead: "",
     es_caso_exito: false,
   });
-
-  const fetchEmpresas = async () => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    let query = supabase.from("empresas").select("*").order("created_at", { ascending: false });
-
-    if (filterSector && filterSector !== "all") {
-      query = query.eq("sector", filterSector as SectorEmpresa);
-    }
-    if (filterEstado && filterEstado !== "all") {
-      query = query.eq("estado", filterEstado as EstadoEmpresa);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      setEmpresas(data || []);
-    }
-    setLoading(false);
-  };
 
   const handleViewRelated = async (empresa: Empresa) => {
     if (!supabase) return;
@@ -153,16 +154,6 @@ export default function Empresas() {
     
     setRelatedDialogOpen(true);
   };
-
-  useEffect(() => {
-    fetchEmpresas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterSector, filterEstado]);
-
-  const filteredEmpresas = empresas.filter((empresa) =>
-    empresa.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    empresa.cif?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,7 +192,7 @@ export default function Empresas() {
         codigo_origen_lead: "",
         es_caso_exito: false,
       });
-      fetchEmpresas();
+      reload();
     }
     setSaving(false);
   };

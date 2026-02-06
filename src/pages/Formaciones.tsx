@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, GraduationCap, Filter, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
@@ -43,8 +44,6 @@ const estadoColors: Record<EstadoFormacion, string> = {
 };
 
 export default function Formaciones() {
-  const [formaciones, setFormaciones] = useState<Formacion[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("all");
   const [filterEstado, setFilterEstado] = useState<string>("all");
@@ -53,6 +52,33 @@ export default function Formaciones() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
+
+  // Use the consolidated data loader hook
+  const { data: formaciones, loading, reload } = useDataLoader<Formacion>(
+    "formaciones",
+    (query) => {
+      let filteredQuery = query.order("created_at", { ascending: false });
+      
+      if (filterTipo && filterTipo !== "all") {
+        filteredQuery = filteredQuery.eq("tipo", filterTipo as TipoFormacion);
+      }
+      if (filterEstado && filterEstado !== "all") {
+        filteredQuery = filteredQuery.eq("estado", filterEstado as EstadoFormacion);
+      }
+      
+      return filteredQuery;
+    },
+    [filterTipo, filterEstado]
+  );
+
+  // Use local search hook for filtering
+  const filteredFormaciones = useLocalSearch(
+    formaciones,
+    searchTerm,
+    (formacion, term) =>
+      formacion.titulo.toLowerCase().includes(term) ||
+      formacion.formador?.toLowerCase().includes(term)
+  );
 
   const [formData, setFormData] = useState({
     titulo: "",
@@ -74,41 +100,6 @@ export default function Formaciones() {
     notas_evidencia: "",
     observaciones: "",
   });
-
-  const fetchFormaciones = async () => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    let query = supabase.from("formaciones").select("*").order("created_at", { ascending: false });
-
-    if (filterTipo && filterTipo !== "all") {
-      query = query.eq("tipo", filterTipo as TipoFormacion);
-    }
-    if (filterEstado && filterEstado !== "all") {
-      query = query.eq("estado", filterEstado as EstadoFormacion);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      setFormaciones(data || []);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchFormaciones();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterTipo, filterEstado]);
-
-  const filteredFormaciones = formaciones.filter((formacion) =>
-    formacion.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    formacion.formador?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,7 +136,7 @@ export default function Formaciones() {
         notas_evidencia: "",
         observaciones: "",
       });
-      fetchFormaciones();
+      reload();
     }
     setSaving(false);
   };
