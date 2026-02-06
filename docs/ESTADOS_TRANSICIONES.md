@@ -12,7 +12,11 @@
 
 ## Introducción
 
-Este documento define los estados posibles para cada entidad del sistema y las transiciones válidas entre ellos. **Importante**: Esta documentación NO implica enforcement (aplicación forzosa) de las transiciones. Los estados son informativos y pueden ser modificados manualmente por usuarios con permisos apropiados. Sin embargo, se documentan las transiciones lógicas recomendadas para mantener la coherencia del sistema.
+Este documento define los estados posibles para cada entidad del sistema y las transiciones válidas entre ellos. 
+
+**ACTUALIZACIÓN (PR-6)**: A partir de ahora, el sistema implementa **validación funcional en el frontend** para las transiciones de estado. Las transiciones definidas en este documento son aplicadas mediante el módulo `src/lib/stateTransitions.ts`, que valida los cambios de estado y proporciona feedback claro cuando se intenta una transición no permitida.
+
+**Importante**: La validación es solo en el frontend. El backend no aplica restricciones (RLS no modificado), pero el frontend guía a los usuarios para seguir los flujos correctos y prevenir errores.
 
 ## Estados de Empresa
 
@@ -25,16 +29,19 @@ Este documento define los estados posibles para cada entidad del sistema y las t
 | `asesorada`  | Empresa ha recibido asesoramiento                    | Verde          |
 | `completada` | Proceso de asesoramiento completado satisfactoriamente| Verde oscuro   |
 
-### Transiciones Válidas
+### Transiciones Válidas (Implementado en PR-6)
 
 ```mermaid
 graph LR
     A[pendiente] --> B[en_proceso]
+    A[pendiente] --> D[completada]
     B --> C[asesorada]
-    C --> D[completada]
-    B --> A[pendiente]
+    B --> D[completada]
     C --> B[en_proceso]
+    C --> D[completada]
 ```
+
+**Validación implementada**: El sistema permite las transiciones mostradas arriba. Estado `completada` es terminal (no permite más cambios).
 
 ### Tabla de Transiciones
 
@@ -75,16 +82,17 @@ graph LR
 | `completado` | Asesoramiento finalizado exitosamente          | Verde          |
 | `cancelado`  | Asesoramiento cancelado                        | Rojo           |
 
-### Transiciones Válidas
+### Transiciones Válidas (Implementado en PR-6)
 
 ```mermaid
 graph LR
     A[programado] --> B[en_curso]
+    A[programado] --> D[cancelado]
     B --> C[completado]
-    A --> D[cancelado]
     B --> D[cancelado]
-    D --> A[programado]
 ```
+
+**Validación implementada**: El sistema permite las transiciones mostradas arriba. Estados `completado` y `cancelado` son terminales.
 
 ### Tabla de Transiciones
 
@@ -132,18 +140,18 @@ graph LR
 | `completado` | Evento finalizado exitosamente                 | Verde          |
 | `cancelado`  | Evento cancelado                               | Rojo           |
 
-### Transiciones Válidas
+### Transiciones Válidas (Implementado en PR-6)
 
 ```mermaid
 graph LR
     A[planificado] --> B[confirmado]
+    A[planificado] --> E[cancelado]
     B --> C[en_curso]
-    C --> D[completado]
-    A --> E[cancelado]
     B --> E[cancelado]
-    C --> E[cancelado]
-    E --> A[planificado]
+    C --> D[completado]
 ```
+
+**Validación implementada**: El sistema permite las transiciones mostradas arriba. Estados `completado` y `cancelado` son terminales. No se permite cancelar desde `en_curso`.
 
 ### Tabla de Transiciones
 
@@ -189,16 +197,17 @@ graph LR
 | `completada` | Formación finalizada exitosamente              | Verde          |
 | `cancelada`  | Formación cancelada                            | Rojo           |
 
-### Transiciones Válidas
+### Transiciones Válidas (Implementado en PR-6)
 
 ```mermaid
 graph LR
     A[planificada] --> B[en_curso]
+    A[planificada] --> D[cancelada]
     B --> C[completada]
-    A --> D[cancelada]
     B --> D[cancelada]
-    D --> A[planificada]
 ```
+
+**Validación implementada**: El sistema permite las transiciones mostradas arriba. Estados `completada` y `cancelada` son terminales.
 
 ### Tabla de Transiciones
 
@@ -244,15 +253,17 @@ graph LR
 | `activo`     | Colaborador activo en el programa              | Verde          |
 | `inactivo`   | Colaborador inactivo o suspendido              | Rojo           |
 
-### Transiciones Válidas
+### Transiciones Válidas (Implementado en PR-6)
 
 ```mermaid
 graph LR
     A[pendiente] --> B[activo]
+    A[pendiente] --> C[inactivo]
     B --> C[inactivo]
     C --> B[activo]
-    A --> C[inactivo]
 ```
+
+**Validación implementada**: El sistema permite las transiciones mostradas arriba. Todos los estados permiten transiciones, ninguno es terminal.
 
 ### Tabla de Transiciones
 
@@ -457,3 +468,31 @@ Para cada entidad con estados, se recomienda mantener:
 9. **Futuras mejoras**: Podría implementarse un sistema de workflow con enforcement opcional en versiones futuras
 
 10. **Integración**: Los estados deben sincronizarse correctamente con sistemas externos (PowerBI, etc.)
+
+## Implementación de Validación (PR-6)
+
+### Módulo de Validación
+
+La validación de transiciones de estado se implementa en el módulo `src/lib/stateTransitions.ts`, que proporciona:
+
+1. **`canTransition(entityType, currentState, newState)`**: Valida si una transición es permitida
+2. **`getValidNextStates(entityType, currentState)`**: Obtiene los estados válidos siguientes
+3. **`getTransitionErrorMessage(entityType, currentState, attemptedState)`**: Genera mensajes de error amigables
+
+### Características
+
+- **Validación solo en frontend**: No se modifican reglas de backend ni RLS
+- **Estados terminales**: Algunos estados no permiten más transiciones
+- **Feedback claro**: Mensajes de error descriptivos cuando se intenta una transición inválida
+- **Sin cambios estéticos**: La UI se mantiene igual, solo se añade validación funcional
+
+### Uso en Formularios
+
+El módulo se integra en los formularios de creación/edición de entidades:
+- Al cambiar el estado, se valida la transición
+- Si es inválida, se muestra un toast con el mensaje de error
+- Solo se permite seleccionar estados válidos desde el estado actual
+
+### Testing
+
+Para probar las transiciones, intente cambiar estados en el orden inverso o saltando pasos para ver las validaciones en acción.

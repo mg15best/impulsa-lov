@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
+import { EstadoSelector } from "@/components/EstadoSelector";
 import { Plus, Search, Calendar, Filter, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -207,24 +208,12 @@ export default function Eventos() {
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="estado">Estado</Label>
-                  <Select
-                    value={formData.estado}
-                    onValueChange={(v) => setFormData({ ...formData, estado: v as EstadoEvento })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(estadoLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <EstadoSelector
+                  entityType="eventos"
+                  value={formData.estado}
+                  onChange={(estado) => setFormData({ ...formData, estado })}
+                  estadoLabels={estadoLabels}
+                />
                 <div className="space-y-2">
                   <Label htmlFor="formato">Formato</Label>
                   <Select
