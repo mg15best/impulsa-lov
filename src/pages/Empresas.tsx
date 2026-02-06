@@ -58,6 +58,37 @@ const estadoColors: Record<EstadoEmpresa, string> = {
   completada: "bg-success/10 text-success",
 };
 
+const initialFormData = {
+  nombre: "",
+  nombre_comercial: "",
+  cif: "",
+  forma_juridica: "",
+  sector: "otro" as SectorEmpresa,
+  subsector: "",
+  fase_madurez: "idea" as FaseMadurez,
+  estado: "pendiente" as EstadoEmpresa,
+  descripcion: "",
+  direccion: "",
+  codigo_postal: "",
+  municipio: "",
+  isla: "",
+  telefono: "",
+  email: "",
+  web: "",
+  redes_sociales: null as Json | null,
+  contacto_principal: "",
+  fecha_constitucion: "",
+  codigo_estado_pipeline: "",
+  codigo_origen_lead: "",
+  url_formulario_diagnostico: "",
+  fecha_recepcion_diagnostico: "",
+  resumen_diagnostico: "",
+  fecha_inicio: "",
+  fecha_finalizacion: "",
+  codigo_motivo_cierre: "",
+  es_caso_exito: false,
+};
+
 export default function Empresas() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSector, setFilterSector] = useState<string>("all");
@@ -100,36 +131,7 @@ export default function Empresas() {
       empresa.cif?.toLowerCase().includes(term)
   );
 
-  const [formData, setFormData] = useState({
-    nombre: "",
-    nombre_comercial: "",
-    cif: "",
-    forma_juridica: "",
-    sector: "otro" as SectorEmpresa,
-    subsector: "",
-    fase_madurez: "idea" as FaseMadurez,
-    estado: "pendiente" as EstadoEmpresa,
-    descripcion: "",
-    direccion: "",
-    codigo_postal: "",
-    municipio: "",
-    isla: "",
-    telefono: "",
-    email: "",
-    web: "",
-    redes_sociales: null as Json | null,
-    contacto_principal: "",
-    fecha_constitucion: "",
-    codigo_estado_pipeline: "",
-    codigo_origen_lead: "",
-    url_formulario_diagnostico: "",
-    fecha_recepcion_diagnostico: "",
-    resumen_diagnostico: "",
-    fecha_inicio: "",
-    fecha_finalizacion: "",
-    codigo_motivo_cierre: "",
-    es_caso_exito: false,
-  });
+  const [formData, setFormData] = useState(initialFormData);
 
   const handleViewRelated = async (empresa: Empresa) => {
     if (!supabase) return;
@@ -180,36 +182,7 @@ export default function Empresas() {
     } else {
       toast({ title: "Empresa creada", description: "La empresa se ha registrado correctamente." });
       setDialogOpen(false);
-      setFormData({
-        nombre: "",
-        nombre_comercial: "",
-        cif: "",
-        forma_juridica: "",
-        sector: "otro",
-        subsector: "",
-        fase_madurez: "idea",
-        estado: "pendiente",
-        descripcion: "",
-        direccion: "",
-        codigo_postal: "",
-        municipio: "",
-        isla: "",
-        telefono: "",
-        email: "",
-        web: "",
-        redes_sociales: null,
-        contacto_principal: "",
-        fecha_constitucion: "",
-        codigo_estado_pipeline: "",
-        codigo_origen_lead: "",
-        url_formulario_diagnostico: "",
-        fecha_recepcion_diagnostico: "",
-        resumen_diagnostico: "",
-        fecha_inicio: "",
-        fecha_finalizacion: "",
-        codigo_motivo_cierre: "",
-        es_caso_exito: false,
-      });
+      setFormData(initialFormData);
       reload();
     }
     setSaving(false);
