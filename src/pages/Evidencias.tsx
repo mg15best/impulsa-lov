@@ -31,9 +31,33 @@ type EvidenciaWithRelations = Evidencia & {
   asesoramiento?: { tema: string | null } | null;
 };
 
+type AsesoramientoWithEmpresa = Asesoramiento & {
+  empresa?: { nombre: string } | null;
+};
+
 // Helper to convert empty strings to null
 const toNullIfEmpty = (value: string): string | null => {
   return value === "" ? null : value;
+};
+
+// Helper function to get origin display text
+const getOrigenDisplay = (evidencia: EvidenciaWithRelations): string => {
+  const origenes: string[] = [];
+  
+  if (evidencia.empresa) {
+    origenes.push(evidencia.empresa.nombre);
+  }
+  if (evidencia.evento) {
+    origenes.push(`Evento: ${evidencia.evento.nombre}`);
+  }
+  if (evidencia.formacion) {
+    origenes.push(`Formación: ${evidencia.formacion.titulo}`);
+  }
+  if (evidencia.asesoramiento) {
+    origenes.push(`Asesoramiento: ${evidencia.asesoramiento.tema || "Sin tema"}`);
+  }
+  
+  return origenes.length > 0 ? origenes.join(", ") : "Sin origen vinculado";
 };
 
 const tipoLabels: Record<TipoEvidencia, string> = {
@@ -64,7 +88,7 @@ export default function Evidencias() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [formaciones, setFormaciones] = useState<Formacion[]>([]);
-  const [asesoramientos, setAsesoramientos] = useState<Asesoramiento[]>([]);
+  const [asesoramientos, setAsesoramientos] = useState<AsesoramientoWithEmpresa[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -117,26 +141,6 @@ export default function Evidencias() {
       evidencia.descripcion?.toLowerCase().includes(term)
   );
 
-  // Helper function to get origin display text
-  const getOrigenDisplay = (evidencia: EvidenciaWithRelations): string => {
-    const origenes: string[] = [];
-    
-    if (evidencia.empresa) {
-      origenes.push(evidencia.empresa.nombre);
-    }
-    if (evidencia.evento) {
-      origenes.push(`Evento: ${evidencia.evento.nombre}`);
-    }
-    if (evidencia.formacion) {
-      origenes.push(`Formación: ${evidencia.formacion.titulo}`);
-    }
-    if (evidencia.asesoramiento) {
-      origenes.push(`Asesoramiento: ${evidencia.asesoramiento.tema || "Sin tema"}`);
-    }
-    
-    return origenes.length > 0 ? origenes.join(", ") : "Sin origen vinculado";
-  };
-
   const [formData, setFormData] = useState({
     titulo: "",
     tipo: "documento" as TipoEvidencia,
@@ -155,12 +159,8 @@ export default function Evidencias() {
     e.preventDefault();
     if (!user || !supabase) return;
 
-    // Validation: at least one relationship must be selected (non-empty string)
-    const hasRelationship = 
-      (formData.empresa_id && formData.empresa_id !== "") ||
-      (formData.evento_id && formData.evento_id !== "") ||
-      (formData.formacion_id && formData.formacion_id !== "") ||
-      (formData.asesoramiento_id && formData.asesoramiento_id !== "");
+    // Validation: at least one relationship must be selected
+    const hasRelationship = formData.empresa_id || formData.evento_id || formData.formacion_id || formData.asesoramiento_id;
     
     if (!hasRelationship) {
       setValidationError("Debe vincular la evidencia al menos a una entidad (empresa, evento, formación o asesoramiento)");
