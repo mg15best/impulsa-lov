@@ -12,9 +12,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
-import { Plus, Search, ClipboardList, Loader2, Calendar } from "lucide-react";
+import { Plus, Search, ClipboardList, Loader2, Calendar, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
 type Asesoramiento = Database["public"]["Tables"]["asesoramientos"]["Row"];
@@ -46,6 +47,8 @@ export default function Asesoramientos() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [formData, setFormData] = useState({
     empresa_id: "",
@@ -71,12 +74,17 @@ export default function Asesoramientos() {
       .order("nombre");
     setEmpresas(empresasData || []);
 
-    // Fetch asesoramientos
+    // Fetch Asesoramientos with filters
     let query = supabase
       .from("asesoramientos")
       .select("*, empresa:empresas(*)")
       .order("fecha", { ascending: false });
 
+    const empresaIdParam = searchParams.get("empresa_id");
+    if (empresaIdParam) {
+      query = query.eq("empresa_id", empresaIdParam);
+    }
+    
     if (filterEstado && filterEstado !== "all") {
       query = query.eq("estado", filterEstado as EstadoAsesoramiento);
     }
@@ -156,7 +164,7 @@ export default function Asesoramientos() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button disabled={!canWrite}>
+            <Button disabled={!canWrite || empresas.length === 0}>
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Asesoramiento
             </Button>
@@ -266,32 +274,50 @@ export default function Asesoramientos() {
       {/* Filtros */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por tema o empresa..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
+          {empresas.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+              <Building2 className="h-12 w-12 text-muted-foreground" />
+              <div>
+                <p className="text-lg font-semibold text-muted-foreground">
+                  No hay empresas registradas
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Para programar asesoramientos, primero debes registrar al menos una empresa
+                </p>
               </div>
+              <Button onClick={() => navigate("/empresas")}>
+                <Building2 className="mr-2 h-4 w-4" />
+                Ir a Empresas
+              </Button>
             </div>
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                {Object.entries(estadoLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          ) : (
+            <div className="flex flex-wrap gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por tema o empresa..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+              <Select value={filterEstado} onValueChange={setFilterEstado}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  {Object.entries(estadoLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </CardContent>
       </Card>
 
