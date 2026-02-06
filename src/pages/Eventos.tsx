@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, Calendar, Filter, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
@@ -46,8 +47,6 @@ const estadoColors: Record<EstadoEvento, string> = {
 };
 
 export default function Eventos() {
-  const [eventos, setEventos] = useState<Evento[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("all");
   const [filterEstado, setFilterEstado] = useState<string>("all");
@@ -56,6 +55,33 @@ export default function Eventos() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
+
+  // Use the consolidated data loader hook
+  const { data: eventos, loading, reload } = useDataLoader<Evento>(
+    "eventos",
+    (query) => {
+      let filteredQuery = query.order("created_at", { ascending: false });
+      
+      if (filterTipo && filterTipo !== "all") {
+        filteredQuery = filteredQuery.eq("tipo", filterTipo as TipoEvento);
+      }
+      if (filterEstado && filterEstado !== "all") {
+        filteredQuery = filteredQuery.eq("estado", filterEstado as EstadoEvento);
+      }
+      
+      return filteredQuery;
+    },
+    [filterTipo, filterEstado]
+  );
+
+  // Use local search hook for filtering
+  const filteredEventos = useLocalSearch(
+    eventos,
+    searchTerm,
+    (evento, term) =>
+      evento.nombre.toLowerCase().includes(term) ||
+      evento.ubicacion?.toLowerCase().includes(term)
+  );
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -76,41 +102,6 @@ export default function Eventos() {
     notas_evidencia: "",
     observaciones: "",
   });
-
-  const fetchEventos = async () => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    let query = supabase.from("eventos").select("*").order("created_at", { ascending: false });
-
-    if (filterTipo && filterTipo !== "all") {
-      query = query.eq("tipo", filterTipo as TipoEvento);
-    }
-    if (filterEstado && filterEstado !== "all") {
-      query = query.eq("estado", filterEstado as EstadoEvento);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      setEventos(data || []);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchEventos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterTipo, filterEstado]);
-
-  const filteredEventos = eventos.filter((evento) =>
-    evento.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    evento.ubicacion?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,7 +137,7 @@ export default function Eventos() {
         notas_evidencia: "",
         observaciones: "",
       });
-      fetchEventos();
+      reload();
     }
     setSaving(false);
   };

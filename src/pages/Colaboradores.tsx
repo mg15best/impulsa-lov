@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, Handshake, Filter, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
@@ -43,8 +44,6 @@ const estadoColors: Record<EstadoColaborador, string> = {
 };
 
 export default function Colaboradores() {
-  const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("all");
   const [filterEstado, setFilterEstado] = useState<string>("all");
@@ -53,6 +52,33 @@ export default function Colaboradores() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
+
+  // Use the consolidated data loader hook
+  const { data: colaboradores, loading, reload } = useDataLoader<Colaborador>(
+    "colaboradores",
+    (query) => {
+      let filteredQuery = query.order("created_at", { ascending: false });
+      
+      if (filterTipo && filterTipo !== "all") {
+        filteredQuery = filteredQuery.eq("tipo", filterTipo as TipoColaborador);
+      }
+      if (filterEstado && filterEstado !== "all") {
+        filteredQuery = filteredQuery.eq("estado", filterEstado as EstadoColaborador);
+      }
+      
+      return filteredQuery;
+    },
+    [filterTipo, filterEstado]
+  );
+
+  // Use local search hook for filtering
+  const filteredColaboradores = useLocalSearch(
+    colaboradores,
+    searchTerm,
+    (colaborador, term) =>
+      colaborador.nombre.toLowerCase().includes(term) ||
+      colaborador.descripcion?.toLowerCase().includes(term)
+  );
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -79,41 +105,6 @@ export default function Colaboradores() {
     requisitos_habituales: "",
     asignado_a: null as string | null,
   });
-
-  const fetchColaboradores = async () => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    let query = supabase.from("colaboradores").select("*").order("created_at", { ascending: false });
-
-    if (filterTipo && filterTipo !== "all") {
-      query = query.eq("tipo", filterTipo as TipoColaborador);
-    }
-    if (filterEstado && filterEstado !== "all") {
-      query = query.eq("estado", filterEstado as EstadoColaborador);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      setColaboradores(data || []);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchColaboradores();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterTipo, filterEstado]);
-
-  const filteredColaboradores = colaboradores.filter((colaborador) =>
-    colaborador.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    colaborador.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,7 +146,7 @@ export default function Colaboradores() {
         requisitos_habituales: "",
         asignado_a: null,
       });
-      fetchColaboradores();
+      reload();
     }
     setSaving(false);
   };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, Users, Loader2, Building2 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -22,9 +23,6 @@ type Contacto = Database["public"]["Tables"]["contactos"]["Row"];
 type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
 
 export default function Contactos() {
-  const [contactos, setContactos] = useState<(Contacto & { empresa?: Empresa })[]>([]);
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEmpresa, setFilterEmpresa] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -34,6 +32,34 @@ export default function Contactos() {
   const { canWrite } = useUserRoles();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  // Load empresas for dropdown (no filters)
+  const { data: empresas } = useDataLoader<Empresa>("empresas", (query) => query.order("nombre"), []);
+
+  // Load contactos with filters
+  const { data: contactos, loading, reload } = useDataLoader<Contacto & { empresa?: Empresa }>(
+    "contactos",
+    (query) => {
+      let filteredQuery = query.select("*, empresa:empresas(*)").order("nombre");
+      
+      if (filterEmpresa && filterEmpresa !== "all") {
+        filteredQuery = filteredQuery.eq("empresa_id", filterEmpresa);
+      }
+      
+      return filteredQuery;
+    },
+    [filterEmpresa]
+  );
+
+  // Use local search hook for filtering
+  const filteredContactos = useLocalSearch(
+    contactos,
+    searchTerm,
+    (c, term) =>
+      c.nombre.toLowerCase().includes(term) ||
+      c.email?.toLowerCase().includes(term) ||
+      c.empresa?.nombre.toLowerCase().includes(term)
+  );
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -45,58 +71,13 @@ export default function Contactos() {
     notas: "",
   });
 
-  const fetchData = async () => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-
-    // Fetch empresas for dropdown
-    const { data: empresasData } = await supabase
-      .from("empresas")
-      .select("*")
-      .order("nombre");
-    setEmpresas(empresasData || []);
-
-    // Fetch contactos
-    let query = supabase
-      .from("contactos")
-      .select("*, empresa:empresas(*)")
-      .order("nombre");
-
-    if (filterEmpresa && filterEmpresa !== "all") {
-      query = query.eq("empresa_id", filterEmpresa);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      setContactos(data || []);
-    }
-    setLoading(false);
-  };
-
+  // Check for empresa_id from URL params and set filter
   useEffect(() => {
-    // Check for empresa_id from URL params and set filter
     const empresaIdParam = searchParams.get("empresa_id");
     if (empresaIdParam) {
       setFilterEmpresa(empresaIdParam);
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterEmpresa]);
-
-  const filteredContactos = contactos.filter((c) =>
-    c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.empresa?.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +109,7 @@ export default function Contactos() {
         es_principal: false,
         notas: "",
       });
-      fetchData();
+      reload();
     }
     setSaving(false);
   };
