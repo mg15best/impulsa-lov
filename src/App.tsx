@@ -18,6 +18,7 @@ import Colaboradores from "./pages/Colaboradores";
 import Actividades from "./pages/Actividades";
 import Configuracion from "./pages/Configuracion";
 import Integraciones from "./pages/Integraciones";
+import StateTransitionsDemo from "./pages/StateTransitionsDemo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/colaboradores" element={<Colaboradores />} />
               <Route path="/configuracion" element={<Configuracion />} />
               <Route path="/integraciones" element={<Integraciones />} />
+              <Route path="/demo-transiciones" element={<StateTransitionsDemo />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
