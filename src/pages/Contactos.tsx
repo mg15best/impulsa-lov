@@ -81,11 +81,10 @@ export default function Contactos() {
   useEffect(() => {
     // Check for empresa_id from URL params and set filter
     const empresaIdParam = searchParams.get("empresa_id");
-    if (empresaIdParam && filterEmpresa === "all") {
+    if (empresaIdParam) {
       setFilterEmpresa(empresaIdParam);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, setFilterEmpresa]);
 
   useEffect(() => {
     fetchData();
