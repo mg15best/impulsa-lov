@@ -14,6 +14,7 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { CatalogSelect } from "@/components/CatalogSelect";
+import { useCatalogLookup, resolveLabelFromLookup } from "@/hooks/useCatalog";
 import { Plus, Search, ListChecks, Filter, Loader2, Eye, Trash2, Edit } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { format } from "date-fns";
@@ -78,6 +79,11 @@ export default function PlanesAccion() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
+
+  // Load catalog lookups for labels
+  const { lookup: planStatusLookup } = useCatalogLookup("action_plan_statuses");
+  const { lookup: itemStatusLookup } = useCatalogLookup("action_plan_item_statuses");
+  const { lookup: priorityLookup } = useCatalogLookup("priority_levels");
 
   // Load action plans
   const { data: actionPlans, loading, reload } = useDataLoader<ActionPlan>(
@@ -514,12 +520,12 @@ export default function PlanesAccion() {
                       <TableCell>{getCompanyName(plan.company_id)}</TableCell>
                       <TableCell>
                         <Badge className={statusColors[plan.status_code] || ""}>
-                          {plan.status_code}
+                          {resolveLabelFromLookup(planStatusLookup, plan.status_code)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge className={priorityColors[plan.priority_code || "medium"] || ""}>
-                          {plan.priority_code || "medium"}
+                          {resolveLabelFromLookup(priorityLookup, plan.priority_code || "medium")}
                         </Badge>
                       </TableCell>
                       <TableCell>{plan.progress}%</TableCell>
@@ -585,7 +591,7 @@ export default function PlanesAccion() {
                   <Label className="text-muted-foreground">Estado</Label>
                   <div className="mt-1">
                     <Badge className={statusColors[selectedPlan.status_code] || ""}>
-                      {selectedPlan.status_code}
+                      {resolveLabelFromLookup(planStatusLookup, selectedPlan.status_code)}
                     </Badge>
                   </div>
                 </div>
@@ -593,7 +599,7 @@ export default function PlanesAccion() {
                   <Label className="text-muted-foreground">Prioridad</Label>
                   <div className="mt-1">
                     <Badge className={priorityColors[selectedPlan.priority_code || "medium"] || ""}>
-                      {selectedPlan.priority_code || "medium"}
+                      {resolveLabelFromLookup(priorityLookup, selectedPlan.priority_code || "medium")}
                     </Badge>
                   </div>
                 </div>
@@ -714,10 +720,10 @@ export default function PlanesAccion() {
                               <div className="flex items-center gap-2">
                                 <h4 className="font-medium">{item.title}</h4>
                                 <Badge className={statusColors[item.status_code] || ""} variant="outline">
-                                  {item.status_code}
+                                  {resolveLabelFromLookup(itemStatusLookup, item.status_code)}
                                 </Badge>
                                 <Badge className={priorityColors[item.priority_code || "medium"] || ""} variant="outline">
-                                  {item.priority_code || "medium"}
+                                  {resolveLabelFromLookup(priorityLookup, item.priority_code || "medium")}
                                 </Badge>
                               </div>
                               {item.description && (
