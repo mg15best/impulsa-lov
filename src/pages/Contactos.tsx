@@ -14,7 +14,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { Plus, Search, Users, Loader2, Building2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
 type Contacto = Database["public"]["Tables"]["contactos"]["Row"];
@@ -32,6 +32,7 @@ export default function Contactos() {
   const { user } = useAuth();
   const { canWrite } = useUserRoles();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -57,6 +58,12 @@ export default function Contactos() {
       .select("*")
       .order("nombre");
     setEmpresas(empresasData || []);
+
+    // Check for empresa_id from URL params
+    const empresaIdParam = searchParams.get("empresa_id");
+    if (empresaIdParam && filterEmpresa === "all") {
+      setFilterEmpresa(empresaIdParam);
+    }
 
     // Fetch contactos
     let query = supabase

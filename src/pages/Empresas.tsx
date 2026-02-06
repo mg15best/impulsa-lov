@@ -124,29 +124,30 @@ export default function Empresas() {
     
     setSelectedEmpresa(empresa);
     
-    // Fetch counts for contactos and asesoramientos
-    const { count: contactosCount, error: contactosError } = await supabase
-      .from("contactos")
-      .select("*", { count: "exact", head: true })
-      .eq("empresa_id", empresa.id);
+    // Fetch counts for contactos and asesoramientos in parallel
+    const [contactosResult, asesoramientosResult] = await Promise.all([
+      supabase
+        .from("contactos")
+        .select("*", { count: "exact", head: true })
+        .eq("empresa_id", empresa.id),
+      supabase
+        .from("asesoramientos")
+        .select("*", { count: "exact", head: true })
+        .eq("empresa_id", empresa.id)
+    ]);
     
-    if (contactosError) {
+    if (contactosResult.error) {
       toast({ title: "Error", description: "No se pudo obtener el conteo de contactos", variant: "destructive" });
       setContactosCount(0);
     } else {
-      setContactosCount(contactosCount || 0);
+      setContactosCount(contactosResult.count || 0);
     }
     
-    const { count: asesoramientosCount, error: asesoramientosError } = await supabase
-      .from("asesoramientos")
-      .select("*", { count: "exact", head: true })
-      .eq("empresa_id", empresa.id);
-    
-    if (asesoramientosError) {
+    if (asesoramientosResult.error) {
       toast({ title: "Error", description: "No se pudo obtener el conteo de asesoramientos", variant: "destructive" });
       setAsesoramientosCount(0);
     } else {
-      setAsesoramientosCount(asesoramientosCount || 0);
+      setAsesoramientosCount(asesoramientosResult.count || 0);
     }
     
     setRelatedDialogOpen(true);
@@ -569,9 +570,7 @@ export default function Empresas() {
           <div className="space-y-4">
             <Card className="cursor-pointer hover:bg-muted/50" onClick={() => {
               setRelatedDialogOpen(false);
-              navigate(`/contactos`);
-              // Note: In a real implementation, we would pass the empresa_id as a URL param
-              // For now, users can filter by empresa in the Contactos page
+              navigate(`/contactos?empresa_id=${selectedEmpresa?.id}`);
             }}>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
@@ -591,8 +590,7 @@ export default function Empresas() {
             
             <Card className="cursor-pointer hover:bg-muted/50" onClick={() => {
               setRelatedDialogOpen(false);
-              navigate(`/asesoramientos`);
-              // Note: In a real implementation, we would pass the empresa_id as a URL param
+              navigate(`/asesoramientos?empresa_id=${selectedEmpresa?.id}`);
             }}>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
