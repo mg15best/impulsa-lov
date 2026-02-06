@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
-import { Search, Loader2, Calendar, GraduationCap, FileText, ClipboardList } from "lucide-react";
+import { Search, Loader2, Calendar, GraduationCap, FileText, ClipboardList, type LucideIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Link } from "react-router-dom";
@@ -41,7 +41,7 @@ const activityTypeLabels: Record<ActivityType, string> = {
   asesoramiento: "Asesoramiento",
 };
 
-const activityTypeIcons: Record<ActivityType, any> = {
+const activityTypeIcons: Record<ActivityType, LucideIcon> = {
   evento: Calendar,
   formacion: GraduationCap,
   evidencia: FileText,
@@ -66,7 +66,7 @@ export default function Actividades() {
   const { user } = useAuth();
   const { canRead } = useUserRoles();
 
-  const fetchActivities = async () => {
+  const fetchActivities = useCallback(async () => {
     if (!supabase) {
       setLoading(false);
       return;
@@ -75,8 +75,8 @@ export default function Actividades() {
     setLoading(true);
 
     try {
-      // Fetch all activity types in parallel
-      const [eventosResult, formacionesResult, evidenciasResult, asesoramientosResult] = await Promise.all([
+      // Fetch all activity types in parallel with individual error handling
+      const results = await Promise.allSettled([
         supabase.from("eventos").select("*").order("fecha", { ascending: false }),
         supabase.from("formaciones").select("*").order("fecha_inicio", { ascending: false }),
         supabase.from("evidencias").select("*, empresa:empresas(nombre), evento:eventos(nombre), formacion:formaciones(titulo), asesoramiento:asesoramientos(tema)").order("fecha", { ascending: false }),
@@ -84,10 +84,11 @@ export default function Actividades() {
       ]);
 
       const items: ActivityItem[] = [];
+      const errors: string[] = [];
 
       // Process Eventos
-      if (eventosResult.data) {
-        eventosResult.data.forEach((evento: Evento) => {
+      if (results[0].status === "fulfilled" && results[0].value.data) {
+        results[0].value.data.forEach((evento: Evento) => {
           items.push({
             id: evento.id,
             type: "evento",
@@ -99,11 +100,13 @@ export default function Actividades() {
             rawData: evento,
           });
         });
+      } else if (results[0].status === "rejected") {
+        errors.push("eventos");
       }
 
       // Process Formaciones
-      if (formacionesResult.data) {
-        formacionesResult.data.forEach((formacion: Formacion) => {
+      if (results[1].status === "fulfilled" && results[1].value.data) {
+        results[1].value.data.forEach((formacion: Formacion) => {
           items.push({
             id: formacion.id,
             type: "formacion",
@@ -115,11 +118,13 @@ export default function Actividades() {
             rawData: formacion,
           });
         });
+      } else if (results[1].status === "rejected") {
+        errors.push("formaciones");
       }
 
       // Process Evidencias
-      if (evidenciasResult.data) {
-        evidenciasResult.data.forEach((evidencia: any) => {
+      if (results[2].status === "fulfilled" && results[2].value.data) {
+        results[2].value.data.forEach((evidencia: any) => {
           let relatedEntity = evidencia.empresa?.nombre;
           if (evidencia.evento) {
             relatedEntity = `Evento: ${evidencia.evento.nombre}`;
@@ -140,11 +145,13 @@ export default function Actividades() {
             rawData: evidencia,
           });
         });
+      } else if (results[2].status === "rejected") {
+        errors.push("evidencias");
       }
 
       // Process Asesoramientos
-      if (asesoramientosResult.data) {
-        asesoramientosResult.data.forEach((asesoramiento: any) => {
+      if (results[3].status === "fulfilled" && results[3].value.data) {
+        results[3].value.data.forEach((asesoramiento: any) => {
           items.push({
             id: asesoramiento.id,
             type: "asesoramiento",
@@ -156,6 +163,8 @@ export default function Actividades() {
             rawData: asesoramiento,
           });
         });
+      } else if (results[3].status === "rejected") {
+        errors.push("asesoramientos");
       }
 
       // Sort all items by date (most recent first)
@@ -166,16 +175,25 @@ export default function Actividades() {
       });
 
       setActivities(items);
+
+      // Show warning if any queries failed
+      if (errors.length > 0) {
+        toast({ 
+          title: "Advertencia", 
+          description: `No se pudieron cargar algunas actividades: ${errors.join(", ")}`, 
+          variant: "destructive" 
+        });
+      }
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchActivities();
-  }, []);
+  }, [fetchActivities]);
 
   // Filter activities based on search term, type, and date range
   const filteredActivities = activities.filter((activity) => {
