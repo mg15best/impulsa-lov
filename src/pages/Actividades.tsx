@@ -143,7 +143,7 @@ export default function Actividades() {
           } else if (evidencia.formacion) {
             relatedEntity = `Formación: ${evidencia.formacion.titulo}`;
           } else if (evidencia.asesoramiento) {
-            relatedEntity = `Asesoramiento: ${evidencia.asesoramiento.tema}`;
+            relatedEntity = `Asesoramiento: ${evidencia.asesoramiento.tema || "Sin tema"}`;
           }
 
           items.push({
@@ -196,8 +196,9 @@ export default function Actividades() {
           variant: "destructive" 
         });
       }
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al cargar actividades";
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
       setLoading(false);
     }
