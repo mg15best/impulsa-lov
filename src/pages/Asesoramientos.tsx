@@ -74,7 +74,7 @@ export default function Asesoramientos() {
       .order("nombre");
     setEmpresas(empresasData || []);
 
-    // Fetch asesoramientos with filters
+    // Fetch Asesoramientos with filters
     let query = supabase
       .from("asesoramientos")
       .select("*, empresa:empresas(*)")
