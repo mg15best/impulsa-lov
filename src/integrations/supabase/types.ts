@@ -382,6 +382,82 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          id: string
+          company_id: string
+          title: string
+          description: string | null
+          status_code: string
+          report_type_code: string | null
+          report_date: string | null
+          content: string | null
+          conclusions: string | null
+          recommendations: string | null
+          responsible_user_id: string | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          title: string
+          description?: string | null
+          status_code?: string
+          report_type_code?: string | null
+          report_date?: string | null
+          content?: string | null
+          conclusions?: string | null
+          recommendations?: string | null
+          responsible_user_id?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          title?: string
+          description?: string | null
+          status_code?: string
+          report_type_code?: string | null
+          report_date?: string | null
+          content?: string | null
+          conclusions?: string | null
+          recommendations?: string | null
+          responsible_user_id?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_responsible_user_id_fkey"
+            columns: ["responsible_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
