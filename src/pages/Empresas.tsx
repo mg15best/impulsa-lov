@@ -229,8 +229,7 @@ export default function Empresas() {
     
     setDialogOpen(false);
     setFormData(initialFormData);
-      reload();
-    }
+    reload();
     setSaving(false);
   };
 
