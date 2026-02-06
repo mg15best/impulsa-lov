@@ -126,6 +126,127 @@ export type Database = {
           },
         ]
       }
+      action_plans: {
+        Row: {
+          id: string
+          company_id: string
+          title: string
+          description: string | null
+          status_code: string
+          category_code: string | null
+          priority_code: string | null
+          start_date: string | null
+          end_date: string | null
+          progress: number | null
+          responsible_user_id: string | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          title: string
+          description?: string | null
+          status_code?: string
+          category_code?: string | null
+          priority_code?: string | null
+          start_date?: string | null
+          end_date?: string | null
+          progress?: number | null
+          responsible_user_id?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          title?: string
+          description?: string | null
+          status_code?: string
+          category_code?: string | null
+          priority_code?: string | null
+          start_date?: string | null
+          end_date?: string | null
+          progress?: number | null
+          responsible_user_id?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_plans_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      action_plan_items: {
+        Row: {
+          id: string
+          action_plan_id: string
+          title: string
+          description: string | null
+          status_code: string
+          priority_code: string | null
+          due_date: string | null
+          completed_date: string | null
+          assigned_to_id: string | null
+          order_index: number | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          action_plan_id: string
+          title: string
+          description?: string | null
+          status_code?: string
+          priority_code?: string | null
+          due_date?: string | null
+          completed_date?: string | null
+          assigned_to_id?: string | null
+          order_index?: number | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          action_plan_id?: string
+          title?: string
+          description?: string | null
+          status_code?: string
+          priority_code?: string | null
+          due_date?: string | null
+          completed_date?: string | null
+          assigned_to_id?: string | null
+          order_index?: number | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_plan_items_action_plan_id_fkey"
+            columns: ["action_plan_id"]
+            isOneToOne: false
+            referencedRelation: "action_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresas: {
         Row: {
           cif: string | null

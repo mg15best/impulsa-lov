@@ -19,6 +19,7 @@ import Actividades from "./pages/Actividades";
 import Configuracion from "./pages/Configuracion";
 import Integraciones from "./pages/Integraciones";
 import StateTransitionsDemo from "./pages/StateTransitionsDemo";
+import PlanesAccion from "./pages/PlanesAccion";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const App = () => (
               <Route path="/formaciones" element={<Formaciones />} />
               <Route path="/evidencias" element={<Evidencias />} />
               <Route path="/colaboradores" element={<Colaboradores />} />
+              <Route path="/planes-accion" element={<PlanesAccion />} />
               <Route path="/configuracion" element={<Configuracion />} />
               <Route path="/integraciones" element={<Integraciones />} />
               <Route path="/demo-transiciones" element={<StateTransitionsDemo />} />
