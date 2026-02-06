@@ -86,7 +86,7 @@ export function PermissionButton({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span tabIndex={0}>
+          <span>
             <Button disabled={isDisabled} {...buttonProps}>
               {children}
             </Button>
