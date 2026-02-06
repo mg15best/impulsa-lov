@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
+import { CatalogSelect } from "@/components/CatalogSelect";
 import { Plus, Search, Building2, Filter, Loader2, Users, ClipboardList, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
@@ -22,6 +23,7 @@ type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
 type SectorEmpresa = Database["public"]["Enums"]["sector_empresa"];
 type EstadoEmpresa = Database["public"]["Enums"]["estado_empresa"];
 type FaseMadurez = Database["public"]["Enums"]["fase_madurez"];
+type Json = Database["public"]["Tables"]["empresas"]["Row"]["redes_sociales"];
 
 const sectorLabels: Record<SectorEmpresa, string> = {
   tecnologia: "Tecnología",
@@ -54,6 +56,37 @@ const estadoColors: Record<EstadoEmpresa, string> = {
   en_proceso: "bg-warning/10 text-warning",
   asesorada: "bg-info/10 text-info",
   completada: "bg-success/10 text-success",
+};
+
+const initialFormData = {
+  nombre: "",
+  nombre_comercial: "",
+  cif: "",
+  forma_juridica: "",
+  sector: "otro" as SectorEmpresa,
+  subsector: "",
+  fase_madurez: "idea" as FaseMadurez,
+  estado: "pendiente" as EstadoEmpresa,
+  descripcion: "",
+  direccion: "",
+  codigo_postal: "",
+  municipio: "",
+  isla: "",
+  telefono: "",
+  email: "",
+  web: "",
+  redes_sociales: null as Json | null,
+  contacto_principal: "",
+  fecha_constitucion: "",
+  codigo_estado_pipeline: "",
+  codigo_origen_lead: "",
+  url_formulario_diagnostico: "",
+  fecha_recepcion_diagnostico: "",
+  resumen_diagnostico: "",
+  fecha_inicio: "",
+  fecha_finalizacion: "",
+  codigo_motivo_cierre: "",
+  es_caso_exito: false,
 };
 
 export default function Empresas() {
@@ -98,28 +131,7 @@ export default function Empresas() {
       empresa.cif?.toLowerCase().includes(term)
   );
 
-  const [formData, setFormData] = useState({
-    nombre: "",
-    nombre_comercial: "",
-    cif: "",
-    forma_juridica: "",
-    sector: "otro" as SectorEmpresa,
-    subsector: "",
-    fase_madurez: "idea" as FaseMadurez,
-    estado: "pendiente" as EstadoEmpresa,
-    descripcion: "",
-    direccion: "",
-    codigo_postal: "",
-    municipio: "",
-    isla: "",
-    telefono: "",
-    email: "",
-    web: "",
-    contacto_principal: "",
-    fecha_constitucion: "",
-    codigo_origen_lead: "",
-    es_caso_exito: false,
-  });
+  const [formData, setFormData] = useState(initialFormData);
 
   const handleViewRelated = async (empresa: Empresa) => {
     if (!supabase) return;
@@ -170,28 +182,7 @@ export default function Empresas() {
     } else {
       toast({ title: "Empresa creada", description: "La empresa se ha registrado correctamente." });
       setDialogOpen(false);
-      setFormData({
-        nombre: "",
-        nombre_comercial: "",
-        cif: "",
-        forma_juridica: "",
-        sector: "otro",
-        subsector: "",
-        fase_madurez: "idea",
-        estado: "pendiente",
-        descripcion: "",
-        direccion: "",
-        codigo_postal: "",
-        municipio: "",
-        isla: "",
-        telefono: "",
-        email: "",
-        web: "",
-        contacto_principal: "",
-        fecha_constitucion: "",
-        codigo_origen_lead: "",
-        es_caso_exito: false,
-      });
+      setFormData(initialFormData);
       reload();
     }
     setSaving(false);
@@ -262,11 +253,11 @@ export default function Empresas() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="forma_juridica">Forma Jurídica</Label>
-                  <Input
-                    id="forma_juridica"
-                    placeholder="S.L., S.A., Autónomo, etc."
+                  <CatalogSelect
+                    catalogType="legal_forms"
                     value={formData.forma_juridica}
-                    onChange={(e) => setFormData({ ...formData, forma_juridica: e.target.value })}
+                    onValueChange={(v) => setFormData({ ...formData, forma_juridica: v })}
+                    placeholder="Seleccionar forma jurídica"
                   />
                 </div>
               </div>
@@ -393,10 +384,11 @@ export default function Empresas() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="codigo_origen_lead">Origen del Lead</Label>
-                  <Input
-                    id="codigo_origen_lead"
+                  <CatalogSelect
+                    catalogType="lead_sources"
                     value={formData.codigo_origen_lead}
-                    onChange={(e) => setFormData({ ...formData, codigo_origen_lead: e.target.value })}
+                    onValueChange={(v) => setFormData({ ...formData, codigo_origen_lead: v })}
+                    placeholder="Seleccionar origen"
                   />
                 </div>
               </div>
@@ -417,6 +409,98 @@ export default function Empresas() {
                   rows={3}
                 />
               </div>
+              
+              {/* Advanced Fields Section */}
+              <details className="space-y-4 rounded-lg border p-4">
+                <summary className="cursor-pointer font-semibold text-sm">
+                  Campos Avanzados (Opcional)
+                </summary>
+                <div className="mt-4 space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="codigo_estado_pipeline">Estado Pipeline</Label>
+                      <CatalogSelect
+                        catalogType="pipeline_statuses"
+                        value={formData.codigo_estado_pipeline}
+                        onValueChange={(v) => setFormData({ ...formData, codigo_estado_pipeline: v })}
+                        placeholder="Seleccionar estado"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="fecha_inicio">Fecha de Inicio</Label>
+                      <Input
+                        id="fecha_inicio"
+                        type="date"
+                        value={formData.fecha_inicio}
+                        onChange={(e) => setFormData({ ...formData, fecha_inicio: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="fecha_finalizacion">Fecha de Finalización</Label>
+                      <Input
+                        id="fecha_finalizacion"
+                        type="date"
+                        value={formData.fecha_finalizacion}
+                        onChange={(e) => setFormData({ ...formData, fecha_finalizacion: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="codigo_motivo_cierre">Motivo de Cierre</Label>
+                      <CatalogSelect
+                        catalogType="close_reasons"
+                        value={formData.codigo_motivo_cierre}
+                        onValueChange={(v) => setFormData({ ...formData, codigo_motivo_cierre: v })}
+                        placeholder="Seleccionar motivo"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="url_formulario_diagnostico">URL Formulario Diagnóstico</Label>
+                      <Input
+                        id="url_formulario_diagnostico"
+                        type="url"
+                        placeholder="https://..."
+                        value={formData.url_formulario_diagnostico}
+                        onChange={(e) => setFormData({ ...formData, url_formulario_diagnostico: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="fecha_recepcion_diagnostico">Fecha Recepción Diagnóstico</Label>
+                      <Input
+                        id="fecha_recepcion_diagnostico"
+                        type="date"
+                        value={formData.fecha_recepcion_diagnostico}
+                        onChange={(e) => setFormData({ ...formData, fecha_recepcion_diagnostico: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="resumen_diagnostico">Resumen Diagnóstico</Label>
+                    <Textarea
+                      id="resumen_diagnostico"
+                      value={formData.resumen_diagnostico}
+                      onChange={(e) => setFormData({ ...formData, resumen_diagnostico: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      id="es_caso_exito"
+                      type="checkbox"
+                      checked={formData.es_caso_exito}
+                      onChange={(e) => setFormData({ ...formData, es_caso_exito: e.target.checked })}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <Label htmlFor="es_caso_exito" className="cursor-pointer">
+                      Marcar como Caso de Éxito
+                    </Label>
+                  </div>
+                </div>
+              </details>
+              
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                   Cancelar
