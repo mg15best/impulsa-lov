@@ -11,7 +11,8 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  Activity
+  Activity,
+  ListChecks
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +43,7 @@ const mainNavItems = [
   { title: "Empresas", url: "/empresas", icon: Building2 },
   { title: "Contactos", url: "/contactos", icon: Users },
   { title: "Asesoramientos", url: "/asesoramientos", icon: ClipboardList },
+  { title: "Planes de Acción", url: "/planes-accion", icon: ListChecks },
 ];
 
 const activityNavItems = [
