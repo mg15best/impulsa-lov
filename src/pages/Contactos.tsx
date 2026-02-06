@@ -84,7 +84,7 @@ export default function Contactos() {
     if (empresaIdParam) {
       setFilterEmpresa(empresaIdParam);
     }
-  }, [searchParams, setFilterEmpresa]);
+  }, [searchParams]);
 
   useEffect(() => {
     fetchData();
