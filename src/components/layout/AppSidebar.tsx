@@ -13,7 +13,8 @@ import {
   ChevronDown,
   Activity,
   ListChecks,
-  ClipboardCheck
+  ClipboardCheck,
+  Target
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +44,7 @@ const mainNavItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Empresas", url: "/empresas", icon: Building2 },
   { title: "Contactos", url: "/contactos", icon: Users },
+  { title: "Oportunidades", url: "/oportunidades", icon: Target },
   { title: "Asesoramientos", url: "/asesoramientos", icon: ClipboardList },
   { title: "Planes de Acción", url: "/planes-accion", icon: ListChecks },
   { title: "Informes", url: "/informes", icon: ClipboardCheck },

@@ -505,6 +505,106 @@ export type Database = {
           }
         ]
       }
+      opportunities: {
+        Row: {
+          id: string
+          company_id: string
+          title: string
+          description: string | null
+          stage_code: string
+          status_code: string
+          source_code: string | null
+          estimated_value: number | null
+          probability: number | null
+          expected_close_date: string | null
+          actual_close_date: string | null
+          assigned_to_id: string | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          title: string
+          description?: string | null
+          stage_code?: string
+          status_code?: string
+          source_code?: string | null
+          estimated_value?: number | null
+          probability?: number | null
+          expected_close_date?: string | null
+          actual_close_date?: string | null
+          assigned_to_id?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          title?: string
+          description?: string | null
+          stage_code?: string
+          status_code?: string
+          source_code?: string | null
+          estimated_value?: number | null
+          probability?: number | null
+          expected_close_date?: string | null
+          actual_close_date?: string | null
+          assigned_to_id?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      opportunity_notes: {
+        Row: {
+          id: string
+          opportunity_id: string
+          note: string
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          opportunity_id: string
+          note: string
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          opportunity_id?: string
+          note?: string
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_notes_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
