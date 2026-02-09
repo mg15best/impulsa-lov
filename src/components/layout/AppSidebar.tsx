@@ -15,7 +15,9 @@ import {
   ListChecks,
   ClipboardCheck,
   Target,
-  Gift
+  Gift,
+  TrendingUp,
+  FolderOpen
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +60,8 @@ const activityNavItems = [
   { title: "Formaciones", url: "/formaciones", icon: GraduationCap },
   { title: "Evidencias", url: "/evidencias", icon: FileText },
   { title: "Colaboradores", url: "/colaboradores", icon: Handshake },
+  { title: "Materiales", url: "/materiales", icon: FolderOpen },
+  { title: "Impactos Difusión", url: "/impactos-difusion", icon: TrendingUp },
 ];
 
 const systemNavItems = [

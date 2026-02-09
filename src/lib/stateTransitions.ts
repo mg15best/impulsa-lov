@@ -19,6 +19,8 @@ export type EstadoAsesoramiento = Database["public"]["Enums"]["estado_asesoramie
 export type EstadoEvento = Database["public"]["Enums"]["estado_evento"];
 export type EstadoFormacion = Database["public"]["Enums"]["estado_formacion"];
 export type EstadoColaborador = Database["public"]["Enums"]["estado_colaborador"];
+export type MaterialStatus = Database["public"]["Enums"]["material_status"];
+export type DisseminationStatus = Database["public"]["Enums"]["dissemination_status"];
 
 /**
  * State transition rules for Empresas
@@ -113,6 +115,44 @@ const colaboradorTransitions: Record<EstadoColaborador, EstadoColaborador[]> = {
   inactivo: ["activo"],
 };
 
+/**
+ * State transition rules for Materials
+ * 
+ * Flow: draft → review → published → archived
+ *                     ↘ draft (can return to draft from review)
+ * 
+ * Business rules:
+ * - draft: Initial state, can move to review or directly to published
+ * - review: Under review, can be published or sent back to draft
+ * - published: Material is live, can be archived
+ * - archived: Material is archived, can be republished
+ */
+const materialTransitions: Record<MaterialStatus, MaterialStatus[]> = {
+  draft: ["review", "published"],
+  review: ["draft", "published"],
+  published: ["archived"],
+  archived: ["published"],
+};
+
+/**
+ * State transition rules for Dissemination Impacts
+ * 
+ * Flow: planned → active → completed
+ *                       ↘ cancelled (from planned or active)
+ * 
+ * Business rules:
+ * - planned: Impact activity planned, can be activated or cancelled
+ * - active: Impact activity in progress, can be completed or cancelled
+ * - completed: Activity finished successfully (terminal state)
+ * - cancelled: Activity cancelled (terminal state)
+ */
+const disseminationTransitions: Record<DisseminationStatus, DisseminationStatus[]> = {
+  planned: ["active", "cancelled"],
+  active: ["completed", "cancelled"],
+  completed: [], // Terminal state
+  cancelled: [], // Terminal state
+};
+
 // Type for all transition maps
 type TransitionMap<T extends string> = Record<T, T[]>;
 
@@ -125,7 +165,7 @@ type TransitionMap<T extends string> = Record<T, T[]>;
  * @returns true if the transition is valid, false otherwise
  */
 export function canTransition(
-  entityType: "empresas" | "asesoramientos" | "eventos" | "formaciones" | "colaboradores",
+  entityType: "empresas" | "asesoramientos" | "eventos" | "formaciones" | "colaboradores" | "materials" | "dissemination_impacts",
   currentState: string,
   newState: string
 ): boolean {
@@ -146,6 +186,12 @@ export function canTransition(
       break;
     case "colaboradores":
       transitions = colaboradorTransitions;
+      break;
+    case "materials":
+      transitions = materialTransitions;
+      break;
+    case "dissemination_impacts":
+      transitions = disseminationTransitions;
       break;
     default:
       return false;
@@ -169,7 +215,7 @@ export function canTransition(
  * @returns Array of valid next states (including the current state)
  */
 export function getValidNextStates(
-  entityType: "empresas" | "asesoramientos" | "eventos" | "formaciones" | "colaboradores",
+  entityType: "empresas" | "asesoramientos" | "eventos" | "formaciones" | "colaboradores" | "materials" | "dissemination_impacts",
   currentState: string
 ): string[] {
   let transitions: TransitionMap<string>;
@@ -190,6 +236,12 @@ export function getValidNextStates(
     case "colaboradores":
       transitions = colaboradorTransitions;
       break;
+    case "materials":
+      transitions = materialTransitions;
+      break;
+    case "dissemination_impacts":
+      transitions = disseminationTransitions;
+      break;
     default:
       return [currentState];
   }
@@ -208,7 +260,7 @@ export function getValidNextStates(
  * @returns A user-friendly error message
  */
 export function getTransitionErrorMessage(
-  entityType: "empresas" | "asesoramientos" | "eventos" | "formaciones" | "colaboradores",
+  entityType: "empresas" | "asesoramientos" | "eventos" | "formaciones" | "colaboradores" | "materials" | "dissemination_impacts",
   currentState: string,
   attemptedState: string
 ): string {
@@ -223,6 +275,8 @@ export function getTransitionErrorMessage(
     eventos: "evento",
     formaciones: "formación",
     colaboradores: "colaborador",
+    materials: "material",
+    dissemination_impacts: "impacto de difusión",
   };
   
   const entityLabel = entityLabels[entityType];
@@ -243,4 +297,6 @@ export const transitionRules = {
   eventos: eventoTransitions,
   formaciones: formacionTransitions,
   colaboradores: colaboradorTransitions,
+  materials: materialTransitions,
+  dissemination_impacts: disseminationTransitions,
 };

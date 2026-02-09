@@ -1476,6 +1476,174 @@ export type Database = {
         }
         Relationships: []
       }
+      materials: {
+        Row: {
+          id: string
+          titulo: string
+          descripcion: string | null
+          tipo: string
+          categoria: string | null
+          formato: string | null
+          estado: Database["public"]["Enums"]["material_status"]
+          empresa_ids: string[] | null
+          evento_ids: string[] | null
+          formacion_ids: string[] | null
+          url_descarga: string | null
+          es_descargable: boolean | null
+          requiere_autenticacion: boolean | null
+          numero_descargas: number | null
+          fecha_publicacion: string | null
+          tags: string[] | null
+          keywords: string | null
+          idioma: string | null
+          version: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          titulo: string
+          descripcion?: string | null
+          tipo: string
+          categoria?: string | null
+          formato?: string | null
+          estado?: Database["public"]["Enums"]["material_status"]
+          empresa_ids?: string[] | null
+          evento_ids?: string[] | null
+          formacion_ids?: string[] | null
+          url_descarga?: string | null
+          es_descargable?: boolean | null
+          requiere_autenticacion?: boolean | null
+          numero_descargas?: number | null
+          fecha_publicacion?: string | null
+          tags?: string[] | null
+          keywords?: string | null
+          idioma?: string | null
+          version?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          titulo?: string
+          descripcion?: string | null
+          tipo?: string
+          categoria?: string | null
+          formato?: string | null
+          estado?: Database["public"]["Enums"]["material_status"]
+          empresa_ids?: string[] | null
+          evento_ids?: string[] | null
+          formacion_ids?: string[] | null
+          url_descarga?: string | null
+          es_descargable?: boolean | null
+          requiere_autenticacion?: boolean | null
+          numero_descargas?: number | null
+          fecha_publicacion?: string | null
+          tags?: string[] | null
+          keywords?: string | null
+          idioma?: string | null
+          version?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dissemination_impacts: {
+        Row: {
+          id: string
+          titulo: string
+          descripcion: string | null
+          canal: string
+          tipo: string | null
+          estado: Database["public"]["Enums"]["dissemination_status"]
+          entity_type: Database["public"]["Enums"]["dissemination_entity_type"]
+          entity_id: string | null
+          empresa_ids: string[] | null
+          fecha_inicio: string | null
+          fecha_fin: string | null
+          fecha_ejecucion: string | null
+          alcance: number | null
+          visualizaciones: number | null
+          descargas: number | null
+          interacciones: number | null
+          conversiones: number | null
+          metricas_adicionales: Json | null
+          presupuesto: number | null
+          coste_real: number | null
+          publico_objetivo: string | null
+          segmento: string | null
+          material_ids: string[] | null
+          tags: string[] | null
+          observaciones: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          titulo: string
+          descripcion?: string | null
+          canal: string
+          tipo?: string | null
+          estado?: Database["public"]["Enums"]["dissemination_status"]
+          entity_type?: Database["public"]["Enums"]["dissemination_entity_type"]
+          entity_id?: string | null
+          empresa_ids?: string[] | null
+          fecha_inicio?: string | null
+          fecha_fin?: string | null
+          fecha_ejecucion?: string | null
+          alcance?: number | null
+          visualizaciones?: number | null
+          descargas?: number | null
+          interacciones?: number | null
+          conversiones?: number | null
+          metricas_adicionales?: Json | null
+          presupuesto?: number | null
+          coste_real?: number | null
+          publico_objetivo?: string | null
+          segmento?: string | null
+          material_ids?: string[] | null
+          tags?: string[] | null
+          observaciones?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          titulo?: string
+          descripcion?: string | null
+          canal?: string
+          tipo?: string | null
+          estado?: Database["public"]["Enums"]["dissemination_status"]
+          entity_type?: Database["public"]["Enums"]["dissemination_entity_type"]
+          entity_id?: string | null
+          empresa_ids?: string[] | null
+          fecha_inicio?: string | null
+          fecha_fin?: string | null
+          fecha_ejecucion?: string | null
+          alcance?: number | null
+          visualizaciones?: number | null
+          descargas?: number | null
+          interacciones?: number | null
+          conversiones?: number | null
+          metricas_adicionales?: Json | null
+          presupuesto?: number | null
+          coste_real?: number | null
+          publico_objetivo?: string | null
+          segmento?: string | null
+          material_ids?: string[] | null
+          tags?: string[] | null
+          observaciones?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1519,6 +1687,8 @@ export type Database = {
         | "grant"
         | "grant_application"
         | "company_compliance"
+        | "material"
+        | "dissemination_impact"
       estado_asesoramiento:
         | "programado"
         | "en_curso"
@@ -1594,6 +1764,22 @@ export type Database = {
         | "draft"
         | "published"
         | "closed"
+      material_status:
+        | "draft"
+        | "review"
+        | "published"
+        | "archived"
+      dissemination_status:
+        | "planned"
+        | "active"
+        | "completed"
+        | "cancelled"
+      dissemination_entity_type:
+        | "empresa"
+        | "evento"
+        | "formacion"
+        | "material"
+        | "general"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1787,6 +1973,9 @@ export const Constants = {
         "otro",
       ],
       estado_colaborador: ["activo", "inactivo", "pendiente"],
+      material_status: ["draft", "review", "published", "archived"],
+      dissemination_status: ["planned", "active", "completed", "cancelled"],
+      dissemination_entity_type: ["empresa", "evento", "formacion", "material", "general"],
     },
   },
 } as const
