@@ -1110,6 +1110,145 @@ export type Database = {
         }
         Relationships: []
       }
+      grants: {
+        Row: {
+          id: string
+          company_id: string
+          title: string
+          description: string | null
+          status_code: string
+          type_code: string | null
+          program_code: string | null
+          priority_code: string | null
+          amount_requested: number | null
+          amount_awarded: number | null
+          application_deadline: string | null
+          decision_date: string | null
+          grant_period_start: string | null
+          grant_period_end: string | null
+          responsible_user_id: string | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          title: string
+          description?: string | null
+          status_code?: string
+          type_code?: string | null
+          program_code?: string | null
+          priority_code?: string | null
+          amount_requested?: number | null
+          amount_awarded?: number | null
+          application_deadline?: string | null
+          decision_date?: string | null
+          grant_period_start?: string | null
+          grant_period_end?: string | null
+          responsible_user_id?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          title?: string
+          description?: string | null
+          status_code?: string
+          type_code?: string | null
+          program_code?: string | null
+          priority_code?: string | null
+          amount_requested?: number | null
+          amount_awarded?: number | null
+          application_deadline?: string | null
+          decision_date?: string | null
+          grant_period_start?: string | null
+          grant_period_end?: string | null
+          responsible_user_id?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grants_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      grant_applications: {
+        Row: {
+          id: string
+          grant_id: string
+          title: string
+          description: string | null
+          status_code: string
+          submitted_date: string | null
+          review_date: string | null
+          decision_date: string | null
+          assigned_to_id: string | null
+          feedback: string | null
+          documents_url: string | null
+          order_index: number | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          grant_id: string
+          title: string
+          description?: string | null
+          status_code?: string
+          submitted_date?: string | null
+          review_date?: string | null
+          decision_date?: string | null
+          assigned_to_id?: string | null
+          feedback?: string | null
+          documents_url?: string | null
+          order_index?: number | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          grant_id?: string
+          title?: string
+          description?: string | null
+          status_code?: string
+          submitted_date?: string | null
+          review_date?: string | null
+          decision_date?: string | null
+          assigned_to_id?: string | null
+          feedback?: string | null
+          documents_url?: string | null
+          order_index?: number | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grant_applications_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "grants"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       evidencias: {
         Row: {
           id: string
