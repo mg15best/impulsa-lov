@@ -614,7 +614,10 @@ export default function Oportunidades() {
                   min="0"
                   max="100"
                   value={opportunityFormData.probability}
-                  onChange={(e) => handleInputChange("probability", parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const value = e.target.value === "" ? 50 : parseInt(e.target.value);
+                    handleInputChange("probability", isNaN(value) ? 50 : value);
+                  }}
                   placeholder="50"
                 />
               </div>

@@ -25,6 +25,3 @@ ON CONFLICT (catalog_type, code) DO NOTHING;
 -- Opportunity Sources Catalog (source_code) - reuse existing lead_sources
 -- This allows opportunities to share source codes with empresas
 -- No additional entries needed as lead_sources catalog already exists
-
--- Add comments to document these catalogs
-COMMENT ON TABLE public.catalogs IS 'Transversal catalog table storing code-label pairs for various catalog types across the application. Used for opportunity stages, statuses, and sources (via lead_sources) among others.';
