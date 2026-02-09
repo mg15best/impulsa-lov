@@ -26,7 +26,7 @@ BEGIN
     -- Calculate due date if default_due_days is specified
     v_due_date := NULL;
     IF v_template.default_due_days IS NOT NULL THEN
-      v_due_date := CURRENT_DATE + (v_template.default_due_days || ' days')::INTERVAL;
+      v_due_date := CURRENT_DATE + (v_template.default_due_days * INTERVAL '1 day');
     END IF;
     
     -- Determine responsable_id based on template rules

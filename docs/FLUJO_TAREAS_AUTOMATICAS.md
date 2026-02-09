@@ -85,17 +85,28 @@ Cuando se crea una nueva empresa en el sistema, automáticamente se genera una t
 
 ```sql
 INSERT INTO task_templates (
-  name: 'diagnostico_inicial_empresa',
-  trigger: 'empresa_created',
-  title_template: 'Diagnóstico inicial',
-  description_template: 'Realizar el diagnóstico inicial de la empresa...',
-  default_due_days: 7,
-  default_priority: 'high',
-  default_estado: 'pending',
-  required_role: 'tecnico',
-  is_active: true,
-  tags: ['diagnostico', 'inicial', 'empresa']
-)
+  name,
+  trigger,
+  title_template,
+  description_template,
+  default_due_days,
+  default_priority,
+  default_estado,
+  required_role,
+  is_active,
+  tags
+) VALUES (
+  'diagnostico_inicial_empresa',
+  'empresa_created',
+  'Diagnóstico inicial',
+  'Realizar el diagnóstico inicial de la empresa...',
+  7,
+  'high',
+  'pending',
+  'tecnico',
+  true,
+  ARRAY['diagnostico', 'inicial', 'empresa']
+);
 ```
 
 #### Características de la Tarea Generada
