@@ -14,8 +14,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
-import { CatalogSelect } from "@/components/CatalogSelect";
-import { useCatalogLookup, resolveLabelFromLookup } from "@/hooks/useCatalog";
 import { Plus, Search, CheckSquare, Filter, Loader2, Edit, Trash2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { format } from "date-fns";
@@ -95,10 +93,6 @@ export default function Tareas() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { canWrite, isAdmin } = useUserRoles();
-
-  // Load catalog lookups
-  const { lookup: tipoLookup } = useCatalogLookup('task_types');
-  const { lookup: sourceLookup } = useCatalogLookup('task_sources');
 
   // Use the consolidated data loader hook
   const { data: tasks, loading, reload } = useDataLoader<Task>(
