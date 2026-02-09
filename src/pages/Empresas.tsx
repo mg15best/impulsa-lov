@@ -87,6 +87,11 @@ const initialFormData = {
   fecha_finalizacion: "",
   codigo_motivo_cierre: "",
   es_caso_exito: false,
+  // Compliance fields
+  data_protection_consent: false,
+  data_consent_date: "",
+  image_rights_consent: false,
+  image_consent_date: "",
 };
 
 export default function Empresas() {
@@ -171,20 +176,137 @@ export default function Empresas() {
     e.preventDefault();
     if (!user || !supabase) return;
 
-    setSaving(true);
-    const { error } = await supabase.from("empresas").insert({
-      ...formData,
-      created_by: user.id,
-    });
+    // Validate compliance fields
+    const {
+      data_protection_consent,
+      data_consent_date,
+      image_rights_consent,
+      image_consent_date,
+    } = formData;
 
-    if (error) {
-      toast({ title: "Error al crear empresa", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Empresa creada", description: "La empresa se ha registrado correctamente." });
-      setDialogOpen(false);
-      setFormData(initialFormData);
-      reload();
+    // Validate required dates when consent is checked
+    if (data_protection_consent && !data_consent_date) {
+      toast({ 
+        title: "Error de validación", 
+        description: "Debe proporcionar la fecha de consentimiento de protección de datos.", 
+        variant: "destructive" 
+      });
+      return;
     }
+
+    if (image_rights_consent && !image_consent_date) {
+      toast({ 
+        title: "Error de validación", 
+        description: "Debe proporcionar la fecha de consentimiento de derechos de imagen.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Validate dates are not in the future
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (data_consent_date && data_consent_date > today) {
+      toast({ 
+        title: "Error de validación", 
+        description: "La fecha de consentimiento de protección de datos no puede ser futura.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    if (image_consent_date && image_consent_date > today) {
+      toast({ 
+        title: "Error de validación", 
+        description: "La fecha de consentimiento de derechos de imagen no puede ser futura.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    setSaving(true);
+    
+    // Separate compliance fields from company data
+    const {
+      data_protection_consent: _dpc,
+      data_consent_date: _dcd,
+      image_rights_consent: _irc,
+      image_consent_date: _icd,
+      ...companyData
+    } = formData;
+    
+    // Insert company
+    const { data: newCompany, error: companyError } = await supabase
+      .from("empresas")
+      .insert({
+        ...companyData,
+        created_by: user.id,
+      })
+      .select()
+      .single();
+
+    if (companyError) {
+      toast({ title: "Error al crear empresa", description: companyError.message, variant: "destructive" });
+      setSaving(false);
+      return;
+    }
+    
+    // Insert compliance record for the new company
+    const { error: complianceError } = await supabase
+      .from("company_compliance")
+      .insert({
+        company_id: newCompany.id,
+        data_protection_consent,
+        data_consent_date: data_consent_date || null,
+        image_rights_consent,
+        image_consent_date: image_consent_date || null,
+        created_by: user.id,
+      });
+
+    if (complianceError) {
+      // Compliance creation failed - attempt to rollback by deleting the company
+      console.error("Error creating compliance record:", {
+        error: complianceError,
+        companyId: newCompany.id,
+        userId: user.id,
+        companyName: companyData.nombre,
+        timestamp: new Date().toISOString()
+      });
+      
+      const { error: deleteError } = await supabase
+        .from("empresas")
+        .delete()
+        .eq("id", newCompany.id);
+      
+      if (deleteError) {
+        console.error("Error rolling back company creation:", {
+          error: deleteError,
+          companyId: newCompany.id,
+          userId: user.id,
+          timestamp: new Date().toISOString()
+        });
+        toast({ 
+          title: "Error crítico", 
+          description: "No se pudo crear la empresa con sus consentimientos. Por favor, contacte al administrador.", 
+          variant: "destructive" 
+        });
+      } else {
+        toast({ 
+          title: "Error al crear consentimientos", 
+          description: "No se pudieron guardar los consentimientos. Por favor, intente nuevamente.", 
+          variant: "destructive" 
+        });
+      }
+      
+      setSaving(false);
+      return;
+    }
+    
+    // Success
+    toast({ title: "Empresa creada", description: "La empresa se ha registrado correctamente." });
+    setDialogOpen(false);
+    setFormData(initialFormData);
+    reload();
     setSaving(false);
   };
 
@@ -408,6 +530,69 @@ export default function Empresas() {
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                   rows={3}
                 />
+              </div>
+              
+              {/* Compliance Section - Consentimientos */}
+              <div className="space-y-4 rounded-lg border p-4 bg-muted/50">
+                <h3 className="font-semibold text-sm">Consentimientos</h3>
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        id="data_protection_consent"
+                        type="checkbox"
+                        checked={formData.data_protection_consent}
+                        onChange={(e) => setFormData({ ...formData, data_protection_consent: e.target.checked })}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <Label htmlFor="data_protection_consent" className="cursor-pointer">
+                        Consentimiento de Protección de Datos
+                      </Label>
+                    </div>
+                    <div className="space-y-2 ml-6">
+                      <Label htmlFor="data_consent_date">
+                        Fecha de Consentimiento de Datos
+                        {formData.data_protection_consent && <span className="text-destructive ml-1">*</span>}
+                      </Label>
+                      <Input
+                        id="data_consent_date"
+                        type="date"
+                        value={formData.data_consent_date}
+                        onChange={(e) => setFormData({ ...formData, data_consent_date: e.target.value })}
+                        disabled={!formData.data_protection_consent}
+                        required={formData.data_protection_consent}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        id="image_rights_consent"
+                        type="checkbox"
+                        checked={formData.image_rights_consent}
+                        onChange={(e) => setFormData({ ...formData, image_rights_consent: e.target.checked })}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <Label htmlFor="image_rights_consent" className="cursor-pointer">
+                        Consentimiento de Derechos de Imagen
+                      </Label>
+                    </div>
+                    <div className="space-y-2 ml-6">
+                      <Label htmlFor="image_consent_date">
+                        Fecha de Consentimiento de Imagen
+                        {formData.image_rights_consent && <span className="text-destructive ml-1">*</span>}
+                      </Label>
+                      <Input
+                        id="image_consent_date"
+                        type="date"
+                        value={formData.image_consent_date}
+                        onChange={(e) => setFormData({ ...formData, image_consent_date: e.target.value })}
+                        disabled={!formData.image_rights_consent}
+                        required={formData.image_rights_consent}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
               
               {/* Advanced Fields Section */}
