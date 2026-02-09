@@ -76,6 +76,60 @@ export type Database = {
           },
         ]
       }
+      attachments: {
+        Row: {
+          id: string
+          owner_type: Database["public"]["Enums"]["attachment_owner_type"]
+          owner_id: string
+          file_name: string
+          file_url: string
+          file_size: number | null
+          mime_type: string | null
+          title: string | null
+          description: string | null
+          category: Database["public"]["Enums"]["attachment_category"]
+          tags: string[] | null
+          is_public: boolean | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          owner_type: Database["public"]["Enums"]["attachment_owner_type"]
+          owner_id: string
+          file_name: string
+          file_url: string
+          file_size?: number | null
+          mime_type?: string | null
+          title?: string | null
+          description?: string | null
+          category?: Database["public"]["Enums"]["attachment_category"]
+          tags?: string[] | null
+          is_public?: boolean | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          owner_type?: Database["public"]["Enums"]["attachment_owner_type"]
+          owner_id?: string
+          file_name?: string
+          file_url?: string
+          file_size?: number | null
+          mime_type?: string | null
+          title?: string | null
+          description?: string | null
+          category?: Database["public"]["Enums"]["attachment_category"]
+          tags?: string[] | null
+          is_public?: boolean | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contactos: {
         Row: {
           cargo: string | null
@@ -1438,6 +1492,33 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "tecnico" | "auditor" | "it"
+      attachment_category:
+        | "document"
+        | "image"
+        | "video"
+        | "certificate"
+        | "report"
+        | "contract"
+        | "invoice"
+        | "presentation"
+        | "other"
+      attachment_owner_type:
+        | "empresa"
+        | "contacto"
+        | "asesoramiento"
+        | "evento"
+        | "formacion"
+        | "evidencia"
+        | "colaborador"
+        | "activity"
+        | "action_plan"
+        | "action_plan_item"
+        | "report"
+        | "opportunity"
+        | "opportunity_note"
+        | "grant"
+        | "grant_application"
+        | "company_compliance"
       estado_asesoramiento:
         | "programado"
         | "en_curso"
