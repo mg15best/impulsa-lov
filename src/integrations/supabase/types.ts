@@ -526,6 +526,323 @@ export type Database = {
         }
         Relationships: []
       }
+      training_attendance: {
+        Row: {
+          id: string
+          formacion_id: string
+          company_id: string | null
+          attendee_name: string
+          attendee_email: string | null
+          attendee_phone: string | null
+          attendee_position: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+          registration_date: string | null
+          attendance_date: string | null
+          certificate_issued: boolean | null
+          certificate_url: string | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          formacion_id: string
+          company_id?: string | null
+          attendee_name: string
+          attendee_email?: string | null
+          attendee_phone?: string | null
+          attendee_position?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          registration_date?: string | null
+          attendance_date?: string | null
+          certificate_issued?: boolean | null
+          certificate_url?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          formacion_id?: string
+          company_id?: string | null
+          attendee_name?: string
+          attendee_email?: string | null
+          attendee_phone?: string | null
+          attendee_position?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          registration_date?: string | null
+          attendance_date?: string | null
+          certificate_issued?: boolean | null
+          certificate_url?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_attendance_formacion_id_fkey"
+            columns: ["formacion_id"]
+            isOneToOne: false
+            referencedRelation: "formaciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_attendance_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_invites: {
+        Row: {
+          id: string
+          evento_id: string
+          company_id: string | null
+          invitee_name: string
+          invitee_email: string | null
+          invitee_phone: string | null
+          invitee_position: string | null
+          status: Database["public"]["Enums"]["invite_status"]
+          sent_date: string | null
+          response_date: string | null
+          response_notes: string | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          evento_id: string
+          company_id?: string | null
+          invitee_name: string
+          invitee_email?: string | null
+          invitee_phone?: string | null
+          invitee_position?: string | null
+          status?: Database["public"]["Enums"]["invite_status"]
+          sent_date?: string | null
+          response_date?: string | null
+          response_notes?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          evento_id?: string
+          company_id?: string | null
+          invitee_name?: string
+          invitee_email?: string | null
+          invitee_phone?: string | null
+          invitee_position?: string | null
+          status?: Database["public"]["Enums"]["invite_status"]
+          sent_date?: string | null
+          response_date?: string | null
+          response_notes?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_invites_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_invites_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_attendance: {
+        Row: {
+          id: string
+          evento_id: string
+          invite_id: string | null
+          company_id: string | null
+          attendee_name: string
+          attendee_email: string | null
+          attendee_phone: string | null
+          attendee_position: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+          registration_date: string | null
+          attendance_date: string | null
+          certificate_issued: boolean | null
+          certificate_url: string | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          evento_id: string
+          invite_id?: string | null
+          company_id?: string | null
+          attendee_name: string
+          attendee_email?: string | null
+          attendee_phone?: string | null
+          attendee_position?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          registration_date?: string | null
+          attendance_date?: string | null
+          certificate_issued?: boolean | null
+          certificate_url?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          evento_id?: string
+          invite_id?: string | null
+          company_id?: string | null
+          attendee_name?: string
+          attendee_email?: string | null
+          attendee_phone?: string | null
+          attendee_position?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          registration_date?: string | null
+          attendance_date?: string | null
+          certificate_issued?: boolean | null
+          certificate_url?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendance_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_attendance_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "event_invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_attendance_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_surveys: {
+        Row: {
+          id: string
+          evento_id: string
+          attendance_id: string | null
+          company_id: string | null
+          respondent_name: string | null
+          respondent_email: string | null
+          status: Database["public"]["Enums"]["survey_status"]
+          satisfaction_rating: number | null
+          content_rating: number | null
+          organization_rating: number | null
+          usefulness_rating: number | null
+          highlights: string | null
+          improvements: string | null
+          impact_description: string | null
+          follow_up_interest: boolean | null
+          follow_up_notes: string | null
+          custom_responses: Json | null
+          submitted_at: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          evento_id: string
+          attendance_id?: string | null
+          company_id?: string | null
+          respondent_name?: string | null
+          respondent_email?: string | null
+          status?: Database["public"]["Enums"]["survey_status"]
+          satisfaction_rating?: number | null
+          content_rating?: number | null
+          organization_rating?: number | null
+          usefulness_rating?: number | null
+          highlights?: string | null
+          improvements?: string | null
+          impact_description?: string | null
+          follow_up_interest?: boolean | null
+          follow_up_notes?: string | null
+          custom_responses?: Json | null
+          submitted_at?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          evento_id?: string
+          attendance_id?: string | null
+          company_id?: string | null
+          respondent_name?: string | null
+          respondent_email?: string | null
+          status?: Database["public"]["Enums"]["survey_status"]
+          satisfaction_rating?: number | null
+          content_rating?: number | null
+          organization_rating?: number | null
+          usefulness_rating?: number | null
+          highlights?: string | null
+          improvements?: string | null
+          impact_description?: string | null
+          follow_up_interest?: boolean | null
+          follow_up_notes?: string | null
+          custom_responses?: Json | null
+          submitted_at?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_surveys_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_surveys_attendance_id_fkey"
+            columns: ["attendance_id"]
+            isOneToOne: false
+            referencedRelation: "event_attendance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_surveys_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eventos: {
         Row: {
           id: string
@@ -942,6 +1259,21 @@ export type Database = {
         | "activo"
         | "inactivo"
         | "pendiente"
+      attendance_status:
+        | "registered"
+        | "confirmed"
+        | "attended"
+        | "no_show"
+        | "cancelled"
+      invite_status:
+        | "sent"
+        | "accepted"
+        | "declined"
+        | "pending"
+      survey_status:
+        | "draft"
+        | "published"
+        | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
