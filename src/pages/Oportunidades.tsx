@@ -180,11 +180,12 @@ export default function Oportunidades() {
       setDialogOpen(false);
       setOpportunityFormData(initialOpportunityFormData);
       setEditingOpportunity(null);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error saving opportunity:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error al guardar la oportunidad";
       toast({
         title: "Error",
-        description: error.message || "Error al guardar la oportunidad",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -208,11 +209,12 @@ export default function Oportunidades() {
         description: "Oportunidad eliminada correctamente",
       });
       reload();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting opportunity:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error al eliminar la oportunidad";
       toast({
         title: "Error",
-        description: error.message || "Error al eliminar la oportunidad",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -231,7 +233,7 @@ export default function Oportunidades() {
 
       if (error) throw error;
       setOpportunityNotes(notes || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error loading notes:", error);
       toast({
         title: "Error",
@@ -300,11 +302,12 @@ export default function Oportunidades() {
 
       setNoteDialogOpen(false);
       setNoteFormData(initialNoteFormData);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error saving note:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error al guardar la nota";
       toast({
         title: "Error",
-        description: error.message || "Error al guardar la nota",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -339,11 +342,12 @@ export default function Oportunidades() {
         if (notesError) throw notesError;
         setOpportunityNotes(notes || []);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting note:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error al eliminar la nota";
       toast({
         title: "Error",
-        description: error.message || "Error al eliminar la nota",
+        description: errorMessage,
         variant: "destructive",
       });
     }
