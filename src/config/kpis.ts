@@ -26,7 +26,17 @@ import {
   Handshake, 
   Megaphone, 
   BookOpen, 
-  BarChart3 
+  BarChart3,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  Users,
+  UserCheck,
+  BookCheck,
+  Award,
+  Target,
+  FileCheck,
+  Layers
 } from "lucide-react";
 
 export interface KPIDefinition {
@@ -41,6 +51,9 @@ export interface KPIDefinition {
   color: string;
   updateFrequency: string;
   reference: string;
+  category?: 'operativo' | 'estrategico' | 'impacto'; // KPI category
+  unit?: string; // Unit of measurement (e.g., '%', 'días', 'empresas')
+  isPercentageValue?: boolean; // True if the calculated value is already a percentage
 }
 
 /**
@@ -158,7 +171,182 @@ export const KPI_DEFINITIONS: KPIDefinition[] = [
     icon: BarChart3,
     color: "text-info",
     updateFrequency: "Al cargar la aplicación",
-    reference: "docs/DEFINICION_KPIS.md#kpi-8-cuadro-de-mando-powerbi"
+    reference: "docs/DEFINICION_KPIS.md#kpi-8-cuadro-de-mando-powerbi",
+    category: "operativo"
+  }
+];
+
+/**
+ * KPIs Estratégicos
+ * Referencia: docs/DEFINICION_KPIS.md - Sección "KPIs Estratégicos"
+ */
+export const STRATEGIC_KPI_DEFINITIONS: KPIDefinition[] = [
+  {
+    id: "tasa_conversion_empresas",
+    label: "Tasa de conversión de empresas",
+    description: "Porcentaje de empresas que pasan de estado 'pendiente' a 'asesorada' o 'completada'",
+    source: "Tabla: empresas, Campo: estado",
+    criteria: "Numerador: estado IN ('asesorada', 'completada'), Denominador: Total empresas",
+    formula: "SELECT ROUND((COUNT(CASE WHEN estado IN ('asesorada', 'completada') THEN 1 END)::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100), 2) FROM empresas",
+    target: 80,
+    icon: TrendingUp,
+    color: "text-purple-600",
+    updateFrequency: "Semanal",
+    reference: "docs/DEFINICION_KPIS.md#kpi-9-tasa-de-conversión-de-empresas",
+    category: "estrategico",
+    unit: "%",
+    isPercentageValue: true
+  },
+  {
+    id: "tiempo_medio_asesoramiento",
+    label: "Tiempo medio de asesoramiento",
+    description: "Tiempo promedio desde que una empresa se registra hasta que recibe su primer asesoramiento completado",
+    source: "Tablas: empresas, asesoramientos, Campos: created_at, fecha, estado",
+    criteria: "Diferencia en días entre empresa.created_at y el primer asesoramiento.fecha donde estado = 'completado'",
+    formula: "SELECT ROUND(AVG(dias_hasta_asesoramiento)) FROM (SELECT e.id, MIN(a.fecha)::date - e.created_at::date as dias_hasta_asesoramiento FROM empresas e INNER JOIN asesoramientos a ON e.id = a.empresa_id WHERE a.estado = 'completado' GROUP BY e.id) sub",
+    target: 15,
+    icon: Clock,
+    color: "text-blue-600",
+    updateFrequency: "Semanal",
+    reference: "docs/DEFINICION_KPIS.md#kpi-10-tiempo-medio-de-asesoramiento",
+    category: "estrategico",
+    unit: "días",
+    isPercentageValue: false
+  },
+  {
+    id: "tasa_finalizacion_asesoramientos",
+    label: "Tasa de finalización de asesoramientos",
+    description: "Porcentaje de asesoramientos programados que se completan (no se cancelan)",
+    source: "Tabla: asesoramientos, Campo: estado",
+    criteria: "Numerador: estado = 'completado', Denominador: estado IN ('completado', 'cancelado')",
+    formula: "SELECT ROUND((COUNT(CASE WHEN estado = 'completado' THEN 1 END)::NUMERIC / NULLIF(COUNT(CASE WHEN estado IN ('completado', 'cancelado') THEN 1 END), 0)::NUMERIC * 100), 2) FROM asesoramientos",
+    target: 90,
+    icon: CheckCircle,
+    color: "text-green-600",
+    updateFrequency: "Semanal",
+    reference: "docs/DEFINICION_KPIS.md#kpi-11-tasa-de-finalización-de-asesoramientos",
+    category: "estrategico",
+    unit: "%",
+    isPercentageValue: true
+  },
+  {
+    id: "empresas_por_tecnico",
+    label: "Empresas por técnico",
+    description: "Número promedio de empresas asignadas por técnico",
+    source: "Tabla: empresas, Campo: tecnico_asignado_id",
+    criteria: "Contar empresas agrupadas por técnico y calcular promedio",
+    formula: "SELECT ROUND(COUNT(*)::NUMERIC / NULLIF(COUNT(DISTINCT tecnico_asignado_id), 0)::NUMERIC, 2) FROM empresas WHERE tecnico_asignado_id IS NOT NULL",
+    target: 7.5,
+    icon: Users,
+    color: "text-indigo-600",
+    updateFrequency: "Semanal",
+    reference: "docs/DEFINICION_KPIS.md#kpi-12-empresas-por-técnico",
+    category: "estrategico",
+    unit: "empresas/técnico",
+    isPercentageValue: false
+  },
+  {
+    id: "tasa_asistencia_eventos",
+    label: "Tasa de asistencia a eventos",
+    description: "Ratio entre asistentes confirmados y esperados en eventos completados",
+    source: "Tabla: eventos, Campos: asistentes_confirmados, asistentes_esperados, estado",
+    criteria: "Eventos completados con asistentes_esperados > 0",
+    formula: "SELECT ROUND((SUM(asistentes_confirmados)::NUMERIC / NULLIF(SUM(asistentes_esperados), 0)::NUMERIC * 100), 2) FROM eventos WHERE estado = 'completado' AND asistentes_esperados > 0",
+    target: 85,
+    icon: UserCheck,
+    color: "text-orange-600",
+    updateFrequency: "Después de cada evento",
+    reference: "docs/DEFINICION_KPIS.md#kpi-13-tasa-de-asistencia-a-eventos",
+    category: "estrategico",
+    unit: "%",
+    isPercentageValue: true
+  },
+  {
+    id: "tasa_ocupacion_formaciones",
+    label: "Tasa de ocupación de formaciones",
+    description: "Ratio entre participantes inscritos y máximo permitido en formaciones completadas",
+    source: "Tabla: formaciones, Campos: participantes_inscritos, participantes_max, estado",
+    criteria: "Formaciones completadas con participantes_max > 0",
+    formula: "SELECT ROUND((SUM(participantes_inscritos)::NUMERIC / NULLIF(SUM(participantes_max), 0)::NUMERIC * 100), 2) FROM formaciones WHERE estado = 'completada' AND participantes_max > 0",
+    target: 80,
+    icon: BookCheck,
+    color: "text-teal-600",
+    updateFrequency: "Después de cada formación",
+    reference: "docs/DEFINICION_KPIS.md#kpi-14-tasa-de-ocupación-de-formaciones",
+    category: "estrategico",
+    unit: "%",
+    isPercentageValue: true
+  }
+];
+
+/**
+ * KPIs de Impacto
+ * Referencia: docs/DEFINICION_KPIS.md - Sección "KPIs de Impacto"
+ */
+export const IMPACT_KPI_DEFINITIONS: KPIDefinition[] = [
+  {
+    id: "casos_exito",
+    label: "Casos de éxito",
+    description: "Número de empresas marcadas como casos de éxito",
+    source: "Tabla: empresas, Campo: es_caso_exito",
+    criteria: "Empresas con es_caso_exito = true",
+    formula: "SELECT COUNT(*) FROM empresas WHERE es_caso_exito = true",
+    target: 5,
+    icon: Award,
+    color: "text-yellow-600",
+    updateFrequency: "Mensual",
+    reference: "docs/DEFINICION_KPIS.md#kpi-15-casos-de-éxito",
+    category: "impacto",
+    unit: "empresas",
+    isPercentageValue: false
+  },
+  {
+    id: "cobertura_sectorial",
+    label: "Cobertura sectorial",
+    description: "Número de sectores diferentes representados en las empresas asesoradas",
+    source: "Tabla: empresas, Campo: sector",
+    criteria: "Contar sectores únicos en empresas asesoradas/completadas",
+    formula: "SELECT COUNT(DISTINCT sector) FROM empresas WHERE estado IN ('asesorada', 'completada')",
+    target: 6,
+    icon: Target,
+    color: "text-pink-600",
+    updateFrequency: "Semanal",
+    reference: "docs/DEFINICION_KPIS.md#kpi-16-cobertura-sectorial",
+    category: "impacto",
+    unit: "sectores",
+    isPercentageValue: false
+  },
+  {
+    id: "indice_documentacion",
+    label: "Índice de documentación",
+    description: "Porcentaje de asesoramientos completados que tienen acta, compromisos y próximos pasos documentados",
+    source: "Tabla: asesoramientos, Campos: estado, acta, compromisos, proximos_pasos",
+    criteria: "Asesoramientos completados con todos los campos de documentación completos",
+    formula: "SELECT ROUND((COUNT(CASE WHEN acta IS NOT NULL AND acta != '' AND compromisos IS NOT NULL AND compromisos != '' AND proximos_pasos IS NOT NULL AND proximos_pasos != '' THEN 1 END)::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100), 2) FROM asesoramientos WHERE estado = 'completado'",
+    target: 95,
+    icon: FileCheck,
+    color: "text-cyan-600",
+    updateFrequency: "Diaria",
+    reference: "docs/DEFINICION_KPIS.md#kpi-17-índice-de-documentación",
+    category: "impacto",
+    unit: "%",
+    isPercentageValue: true
+  },
+  {
+    id: "diversidad_colaboradores",
+    label: "Diversidad de colaboradores",
+    description: "Número de tipos diferentes de colaboradores activos",
+    source: "Tabla: colaboradores, Campo: tipo, estado",
+    criteria: "Tipos únicos de colaboradores con estado = 'activo'",
+    formula: "SELECT COUNT(DISTINCT tipo) FROM colaboradores WHERE estado = 'activo'",
+    target: 4,
+    icon: Layers,
+    color: "text-violet-600",
+    updateFrequency: "Mensual",
+    reference: "docs/DEFINICION_KPIS.md#kpi-18-diversidad-de-colaboradores",
+    category: "impacto",
+    unit: "tipos",
+    isPercentageValue: false
   }
 ];
 
@@ -166,14 +354,36 @@ export const KPI_DEFINITIONS: KPIDefinition[] = [
  * Obtiene la definición de un KPI por su ID
  */
 export function getKPIDefinition(id: string): KPIDefinition | undefined {
-  return KPI_DEFINITIONS.find(kpi => kpi.id === id);
+  const allKPIs = [...KPI_DEFINITIONS, ...STRATEGIC_KPI_DEFINITIONS, ...IMPACT_KPI_DEFINITIONS];
+  return allKPIs.find(kpi => kpi.id === id);
 }
 
 /**
- * Obtiene todas las definiciones de KPIs
+ * Obtiene todas las definiciones de KPIs operativos
  */
 export function getAllKPIDefinitions(): KPIDefinition[] {
   return KPI_DEFINITIONS;
+}
+
+/**
+ * Obtiene todas las definiciones de KPIs estratégicos
+ */
+export function getStrategicKPIDefinitions(): KPIDefinition[] {
+  return STRATEGIC_KPI_DEFINITIONS;
+}
+
+/**
+ * Obtiene todas las definiciones de KPIs de impacto
+ */
+export function getImpactKPIDefinitions(): KPIDefinition[] {
+  return IMPACT_KPI_DEFINITIONS;
+}
+
+/**
+ * Obtiene todas las definiciones de KPIs (todas las categorías)
+ */
+export function getAllKPIDefinitionsComplete(): KPIDefinition[] {
+  return [...KPI_DEFINITIONS, ...STRATEGIC_KPI_DEFINITIONS, ...IMPACT_KPI_DEFINITIONS];
 }
 
 /**
@@ -187,4 +397,5 @@ export interface KPIValue {
   percentage: number;
   icon: React.ElementType;
   color: string;
+  unit?: string; // Unit of measurement
 }

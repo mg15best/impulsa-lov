@@ -18,7 +18,12 @@ import { useKPICalculations } from "@/hooks/useKPICalculations";
 export default function Dashboard() {
   // Cargar KPIs usando hook centralizado
   // Los KPIs están definidos en src/config/kpis.ts y calculados en src/hooks/useKPICalculations.ts
-  const { kpiValues, isLoading: kpisLoading } = useKPICalculations();
+  const { 
+    kpiValues, 
+    strategicKpiValues, 
+    impactKpiValues, 
+    isLoading: kpisLoading 
+  } = useKPICalculations();
 
   const [stats, setStats] = useState({
     totalEmpresas: 0,
@@ -172,6 +177,62 @@ export default function Dashboard() {
               </p>
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      {/* KPIs Estratégicos */}
+      <div>
+        <h2 className="mb-4 text-lg font-semibold">KPIs Estratégicos</h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {strategicKpiValues.map((kpi) => {
+            const Icon = kpi.icon;
+            
+            return (
+              <Card key={kpi.id}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">{kpi.label}</CardTitle>
+                  <Icon className={`h-5 w-5 ${kpi.color}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {kpi.value.toFixed(1)}{kpi.unit ? ` ${kpi.unit}` : ''}
+                  </div>
+                  <Progress value={kpi.percentage} className="mt-2" />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Meta: {kpi.target}{kpi.unit ? ` ${kpi.unit}` : ''}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* KPIs de Impacto */}
+      <div>
+        <h2 className="mb-4 text-lg font-semibold">KPIs de Impacto</h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {impactKpiValues.map((kpi) => {
+            const Icon = kpi.icon;
+            
+            return (
+              <Card key={kpi.id}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">{kpi.label}</CardTitle>
+                  <Icon className={`h-5 w-5 ${kpi.color}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {kpi.unit === '%' ? kpi.value.toFixed(1) : kpi.value.toFixed(0)}{kpi.unit ? ` ${kpi.unit}` : ''}
+                  </div>
+                  <Progress value={kpi.percentage} className="mt-2" />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Meta: {kpi.target}{kpi.unit ? ` ${kpi.unit}` : ''}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </div>
