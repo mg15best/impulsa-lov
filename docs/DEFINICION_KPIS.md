@@ -166,18 +166,30 @@ WHERE estado = 'activo';
 
 ### KPI 6: Impactos de Difusión
 
-**Descripción**: Número de evidencias de tipo relacionado con difusión (fotografías, videos) asociadas a eventos o formaciones completadas.
+**Descripción**: Número de actividades de difusión completadas que han generado impacto medible.
 
-**Fuente de datos**:
+**Fuente de datos** (PR-K Actualización):
+- Tabla principal: `dissemination_impacts` (PR-J)
+- Campo: `estado`
+- Vista unificada: `dissemination_kpi_source` para análisis detallado
+
+**Fuente de datos alternativa** (Legacy):
 - Tabla: `evidencias`
 - Campos: `tipo`, `evento_id`, `formacion_id`
 - Tablas relacionadas: `eventos`, `formaciones`
 
 **Criterio**:
-- Evidencias con tipo IN ('fotografia', 'video', 'otro')
-- Relacionadas con eventos completados O formaciones completadas
+- **Preferido (PR-K)**: Difusiones con estado = 'completed' en tabla `dissemination_impacts`
+- **Alternativo**: Evidencias con tipo IN ('fotografia', 'video', 'otro') relacionadas con eventos completados O formaciones completadas
 
-**Fórmula**:
+**Fórmula preferida (PR-K)**:
+```sql
+SELECT COUNT(*)
+FROM dissemination_impacts
+WHERE estado = 'completed';
+```
+
+**Fórmula alternativa (Legacy)**:
 ```sql
 SELECT COUNT(DISTINCT e.id)
 FROM evidencias e
@@ -190,27 +202,50 @@ WHERE e.tipo IN ('fotografia', 'video', 'otro')
   );
 ```
 
+**Vista unificada para Power BI**:
+```sql
+SELECT * FROM dissemination_kpi_source
+WHERE contributes_to_kpi = 'KPI 6 - Impactos de Difusión';
+```
+
 **Meta**: 15 impactos de difusión
 **Frecuencia de actualización**: Semanal
 **Visualización**: Número absoluto con progreso hacia la meta
 
-**Notas**: Este KPI puede refinarse según los criterios específicos de "impacto de difusión" definidos por el negocio.
+**Notas**: 
+- PR-K introduce la tabla `dissemination_impacts` como fuente principal para este KPI
+- La vista `dissemination_kpi_source` unifica el acceso a datos de difusión
+- Se mantiene compatibilidad con `evidencias` para datos históricos
 
 ---
 
 ### KPI 7: Material de Apoyo
 
-**Descripción**: Número de evidencias de tipo documento o material educativo asociadas a formaciones.
+**Descripción**: Número de materiales educativos publicados y asociados a formaciones.
 
-**Fuente de datos**:
+**Fuente de datos** (PR-K Actualización):
+- Tabla principal: `materials` (PR-J)
+- Campos: `estado`, `tipo`, `formacion_ids`
+- Vista unificada: `materials_kpi_source` para análisis detallado
+
+**Fuente de datos alternativa** (Legacy):
 - Tabla: `evidencias`
 - Campos: `tipo`, `formacion_id`
 
 **Criterio**:
-- Evidencias con tipo IN ('documento', 'certificado', 'informe')
-- Relacionadas con formaciones
+- **Preferido (PR-K)**: Materiales con estado = 'published' AND (tipo IN ('documento', 'guia', 'manual', 'presentacion') OR tiene formaciones asociadas)
+- **Alternativo**: Evidencias con tipo IN ('documento', 'certificado', 'informe') relacionadas con formaciones
 
-**Fórmula**:
+**Fórmula preferida (PR-K)**:
+```sql
+SELECT COUNT(*)
+FROM materials
+WHERE estado = 'published' 
+  AND (tipo IN ('documento', 'guia', 'manual', 'presentacion') 
+       OR (formacion_ids IS NOT NULL AND array_length(formacion_ids, 1) > 0));
+```
+
+**Fórmula alternativa (Legacy)**:
 ```sql
 SELECT COUNT(*)
 FROM evidencias
@@ -218,16 +253,21 @@ WHERE tipo IN ('documento', 'certificado', 'informe')
   AND formacion_id IS NOT NULL;
 ```
 
-**Fórmula alternativa (todos los materiales)**:
+**Vista unificada para Power BI**:
 ```sql
-SELECT COUNT(*)
-FROM evidencias
-WHERE tipo = 'documento';
+SELECT * FROM materials_kpi_source
+WHERE contributes_to_kpi = 'KPI 7 - Material de Apoyo';
 ```
 
 **Meta**: 5 materiales de apoyo
 **Frecuencia de actualización**: Semanal
 **Visualización**: Número absoluto con progreso hacia la meta
+
+**Notas**: 
+- PR-K introduce la tabla `materials` como fuente principal para este KPI
+- La vista `materials_kpi_source` unifica el acceso a datos de materiales
+- Se mantiene compatibilidad con `evidencias` para datos históricos
+- Los materiales pueden estar asociados a múltiples formaciones vía array `formacion_ids`
 
 ---
 
