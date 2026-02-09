@@ -874,3 +874,176 @@ CREATE TABLE public.catalog_versions (
 - [Decisiones de Duplicidades](./DECISIONES_DUPLICIDADES.md)
 - [Glosario EN→ES para UI](./GLOSARIO_UI.md)
 - [Modelo de Dominio Actual](./MODELO_DOMINIO.md)
+
+---
+
+## Catálogos PR-J: Materiales e Impactos de Difusión
+
+### Material Types (Tipos de Material)
+
+**Catalog Type**: `material_types`
+
+**Propósito**: Clasificar materiales por su tipo de contenido
+
+**Campo Relacionado**: `materials.tipo`
+
+| Code | Label | Descripción | Orden |
+|------|-------|-------------|-------|
+| `documento` | Documento | Documentos generales (PDF, Word, etc.) | 1 |
+| `video` | Vídeo | Contenido en vídeo | 2 |
+| `presentacion` | Presentación | Presentaciones (PowerPoint, etc.) | 3 |
+| `template` | Plantilla | Plantillas reutilizables | 4 |
+| `guia` | Guía | Guías y tutoriales | 5 |
+| `manual` | Manual | Manuales de usuario o instrucciones | 6 |
+| `infografia` | Infografía | Infografías educativas | 7 |
+| `herramienta` | Herramienta | Herramientas interactivas | 8 |
+| `otro` | Otro | Otros tipos de material | 99 |
+
+**Implementación**:
+```sql
+INSERT INTO public.catalogs (catalog_type, code, label, sort_order) VALUES
+  ('material_types', 'documento', 'Documento', 1),
+  ('material_types', 'video', 'Vídeo', 2),
+  ('material_types', 'presentacion', 'Presentación', 3),
+  ('material_types', 'template', 'Plantilla', 4),
+  ('material_types', 'guia', 'Guía', 5),
+  ('material_types', 'manual', 'Manual', 6),
+  ('material_types', 'infografia', 'Infografía', 7),
+  ('material_types', 'herramienta', 'Herramienta', 8),
+  ('material_types', 'otro', 'Otro', 99);
+```
+
+---
+
+### Material Categories (Categorías de Material)
+
+**Catalog Type**: `material_categories`
+
+**Propósito**: Clasificar materiales por área temática
+
+**Campo Relacionado**: `materials.categoria`
+
+| Code | Label | Descripción | Orden |
+|------|-------|-------------|-------|
+| `implementacion` | Implementación | Materiales para implementación de proyectos | 1 |
+| `gestion` | Gestión | Materiales de gestión empresarial | 2 |
+| `digitalizacion` | Digitalización | Recursos de transformación digital | 3 |
+| `innovacion` | Innovación | Materiales sobre innovación | 4 |
+| `sostenibilidad` | Sostenibilidad | Recursos de sostenibilidad | 5 |
+| `comercializacion` | Comercialización | Materiales de marketing y ventas | 6 |
+| `financiacion` | Financiación | Recursos sobre financiación | 7 |
+| `formacion` | Formación | Materiales educativos | 8 |
+| `legal` | Legal | Documentos legales | 9 |
+| `otro` | Otro | Otras categorías | 99 |
+
+---
+
+### Material Formats (Formatos de Material)
+
+**Catalog Type**: `material_formats`
+
+**Propósito**: Indicar el formato técnico del material
+
+**Campo Relacionado**: `materials.formato`
+
+| Code | Label | Descripción | Orden |
+|------|-------|-------------|-------|
+| `pdf` | PDF | Documentos PDF | 1 |
+| `word` | Word | Documentos Word | 2 |
+| `excel` | Excel | Hojas de cálculo Excel | 3 |
+| `powerpoint` | PowerPoint | Presentaciones PowerPoint | 4 |
+| `video_mp4` | Vídeo (MP4) | Archivos de vídeo MP4 | 5 |
+| `video_url` | Vídeo (URL) | Enlaces a vídeos externos | 6 |
+| `html` | Web/HTML | Contenido web/HTML | 7 |
+| `interactive` | Interactivo | Herramientas interactivas | 8 |
+| `zip` | Archivo comprimido | Archivos ZIP | 9 |
+| `otro` | Otro | Otros formatos | 99 |
+
+---
+
+### Dissemination Channels (Canales de Difusión)
+
+**Catalog Type**: `dissemination_channels`
+
+**Propósito**: Clasificar canales de comunicación y difusión
+
+**Campo Relacionado**: `dissemination_impacts.canal`
+
+| Code | Label | Descripción | Orden |
+|------|-------|-------------|-------|
+| `email` | Email | Correo electrónico (newsletters, mailings) | 1 |
+| `web` | Web | Sitio web institucional | 2 |
+| `social_media` | Redes Sociales | Facebook, Twitter, LinkedIn, Instagram | 3 |
+| `evento` | Evento | Difusión en eventos presenciales | 4 |
+| `webinar` | Webinar | Webinars y eventos online | 5 |
+| `newsletter` | Newsletter | Boletines informativos | 6 |
+| `prensa` | Prensa | Medios de comunicación y prensa | 7 |
+| `telefono` | Teléfono | Llamadas telefónicas | 8 |
+| `presencial` | Presencial | Comunicación presencial directa | 9 |
+| `otro` | Otro | Otros canales | 99 |
+
+---
+
+### Dissemination Types (Tipos de Difusión)
+
+**Catalog Type**: `dissemination_types`
+
+**Propósito**: Clasificar actividades de difusión por tipo
+
+**Campo Relacionado**: `dissemination_impacts.tipo`
+
+| Code | Label | Descripción | Orden |
+|------|-------|-------------|-------|
+| `campaign` | Campaña | Campañas de comunicación | 1 |
+| `announcement` | Anuncio | Anuncios y comunicados | 2 |
+| `newsletter` | Newsletter | Envío de newsletter | 3 |
+| `invitation` | Invitación | Invitaciones a eventos/formaciones | 4 |
+| `reminder` | Recordatorio | Recordatorios y seguimientos | 5 |
+| `followup` | Seguimiento | Comunicaciones de seguimiento | 6 |
+| `promotion` | Promoción | Promociones y ofertas | 7 |
+| `survey` | Encuesta | Envío de encuestas | 8 |
+| `report` | Informe | Difusión de informes y resultados | 9 |
+| `otro` | Otro | Otros tipos | 99 |
+
+---
+
+### Audience Segments (Segmentos de Audiencia)
+
+**Catalog Type**: `audience_segments`
+
+**Propósito**: Segmentar audiencias para actividades de difusión
+
+**Campo Relacionado**: `dissemination_impacts.segmento`
+
+| Code | Label | Descripción | Orden |
+|------|-------|-------------|-------|
+| `all_companies` | Todas las empresas | Todas las empresas registradas | 1 |
+| `new_companies` | Empresas nuevas | Empresas recientemente incorporadas | 2 |
+| `active_companies` | Empresas activas | Empresas con actividad reciente | 3 |
+| `sector_tech` | Sector tecnología | Empresas del sector tecnológico | 4 |
+| `sector_industry` | Sector industria | Empresas del sector industrial | 5 |
+| `sector_services` | Sector servicios | Empresas del sector servicios | 6 |
+| `phase_idea` | Fase idea | Empresas en fase de idea | 7 |
+| `phase_validation` | Fase validación | Empresas en fase de validación | 8 |
+| `phase_growth` | Fase crecimiento | Empresas en fase de crecimiento | 9 |
+| `phase_consolidation` | Fase consolidación | Empresas en fase de consolidación | 10 |
+| `event_attendees` | Asistentes a eventos | Empresas que asistieron a eventos | 11 |
+| `training_participants` | Participantes de formaciones | Empresas participantes en formaciones | 12 |
+| `custom` | Personalizado | Segmentación personalizada | 99 |
+
+---
+
+## Resumen Actualizado de Catálogos
+
+| # | Catalog Type | Descripción | Cantidad | Módulo |
+|---|--------------|-------------|----------|--------|
+| 23 | `material_types` | Tipos de material | 9 | Materiales |
+| 24 | `material_categories` | Categorías de material | 10 | Materiales |
+| 25 | `material_formats` | Formatos de material | 10 | Materiales |
+| 26 | `dissemination_channels` | Canales de difusión | 10 | Impactos Difusión |
+| 27 | `dissemination_types` | Tipos de difusión | 10 | Impactos Difusión |
+| 28 | `audience_segments` | Segmentos de audiencia | 13 | Impactos Difusión |
+
+**Total de catálogos**: 28 (22 previos + 6 nuevos)
+
+**Total de valores nuevos**: 62
