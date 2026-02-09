@@ -25,6 +25,7 @@ import Oportunidades from "./pages/Oportunidades";
 import Grants from "./pages/Grants";
 import Materiales from "./pages/Materiales";
 import ImpactosDifusion from "./pages/ImpactosDifusion";
+import Tareas from "./pages/Tareas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ const App = () => (
               <Route path="/grants" element={<Grants />} />
               <Route path="/materiales" element={<Materiales />} />
               <Route path="/impactos-difusion" element={<ImpactosDifusion />} />
+              <Route path="/tareas" element={<Tareas />} />
               <Route path="/configuracion" element={<Configuracion />} />
               <Route path="/integraciones" element={<Integraciones />} />
               <Route path="/demo-transiciones" element={<StateTransitionsDemo />} />
