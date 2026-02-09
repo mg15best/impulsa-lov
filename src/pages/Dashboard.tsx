@@ -195,27 +195,11 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {kpi.value.toFixed(1)}
-                    {kpi.id === 'tasa_conversion_empresas' || 
-                     kpi.id === 'tasa_finalizacion_asesoramientos' || 
-                     kpi.id === 'tasa_asistencia_eventos' || 
-                     kpi.id === 'tasa_ocupacion_formaciones' 
-                      ? '%' 
-                      : kpi.id === 'tiempo_medio_asesoramiento' 
-                        ? ' días' 
-                        : ''}
+                    {kpi.value.toFixed(1)}{kpi.unit ? ` ${kpi.unit}` : ''}
                   </div>
                   <Progress value={kpi.percentage} className="mt-2" />
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Meta: {kpi.target}
-                    {kpi.id === 'tasa_conversion_empresas' || 
-                     kpi.id === 'tasa_finalizacion_asesoramientos' || 
-                     kpi.id === 'tasa_asistencia_eventos' || 
-                     kpi.id === 'tasa_ocupacion_formaciones' 
-                      ? '%' 
-                      : kpi.id === 'tiempo_medio_asesoramiento' 
-                        ? ' días' 
-                        : ''}
+                    Meta: {kpi.target}{kpi.unit ? ` ${kpi.unit}` : ''}
                   </p>
                 </CardContent>
               </Card>
@@ -239,12 +223,11 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {kpi.value.toFixed(kpi.id === 'indice_documentacion' ? 1 : 0)}
-                    {kpi.id === 'indice_documentacion' ? '%' : ''}
+                    {kpi.unit === '%' ? kpi.value.toFixed(1) : kpi.value.toFixed(0)}{kpi.unit ? ` ${kpi.unit}` : ''}
                   </div>
                   <Progress value={kpi.percentage} className="mt-2" />
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Meta: {kpi.target}{kpi.id === 'indice_documentacion' ? '%' : ''}
+                    Meta: {kpi.target}{kpi.unit ? ` ${kpi.unit}` : ''}
                   </p>
                 </CardContent>
               </Card>

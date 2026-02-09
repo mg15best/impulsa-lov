@@ -53,6 +53,7 @@ export interface KPIDefinition {
   reference: string;
   category?: 'operativo' | 'estrategico' | 'impacto'; // KPI category
   unit?: string; // Unit of measurement (e.g., '%', 'días', 'empresas')
+  isPercentageValue?: boolean; // True if the calculated value is already a percentage
 }
 
 /**
@@ -193,7 +194,8 @@ export const STRATEGIC_KPI_DEFINITIONS: KPIDefinition[] = [
     updateFrequency: "Semanal",
     reference: "docs/DEFINICION_KPIS.md#kpi-9-tasa-de-conversión-de-empresas",
     category: "estrategico",
-    unit: "%"
+    unit: "%",
+    isPercentageValue: true
   },
   {
     id: "tiempo_medio_asesoramiento",
@@ -208,7 +210,8 @@ export const STRATEGIC_KPI_DEFINITIONS: KPIDefinition[] = [
     updateFrequency: "Semanal",
     reference: "docs/DEFINICION_KPIS.md#kpi-10-tiempo-medio-de-asesoramiento",
     category: "estrategico",
-    unit: "días"
+    unit: "días",
+    isPercentageValue: false
   },
   {
     id: "tasa_finalizacion_asesoramientos",
@@ -223,7 +226,8 @@ export const STRATEGIC_KPI_DEFINITIONS: KPIDefinition[] = [
     updateFrequency: "Semanal",
     reference: "docs/DEFINICION_KPIS.md#kpi-11-tasa-de-finalización-de-asesoramientos",
     category: "estrategico",
-    unit: "%"
+    unit: "%",
+    isPercentageValue: true
   },
   {
     id: "empresas_por_tecnico",
@@ -238,7 +242,8 @@ export const STRATEGIC_KPI_DEFINITIONS: KPIDefinition[] = [
     updateFrequency: "Semanal",
     reference: "docs/DEFINICION_KPIS.md#kpi-12-empresas-por-técnico",
     category: "estrategico",
-    unit: "empresas/técnico"
+    unit: "empresas/técnico",
+    isPercentageValue: false
   },
   {
     id: "tasa_asistencia_eventos",
@@ -253,7 +258,8 @@ export const STRATEGIC_KPI_DEFINITIONS: KPIDefinition[] = [
     updateFrequency: "Después de cada evento",
     reference: "docs/DEFINICION_KPIS.md#kpi-13-tasa-de-asistencia-a-eventos",
     category: "estrategico",
-    unit: "%"
+    unit: "%",
+    isPercentageValue: true
   },
   {
     id: "tasa_ocupacion_formaciones",
@@ -268,7 +274,8 @@ export const STRATEGIC_KPI_DEFINITIONS: KPIDefinition[] = [
     updateFrequency: "Después de cada formación",
     reference: "docs/DEFINICION_KPIS.md#kpi-14-tasa-de-ocupación-de-formaciones",
     category: "estrategico",
-    unit: "%"
+    unit: "%",
+    isPercentageValue: true
   }
 ];
 
@@ -290,7 +297,8 @@ export const IMPACT_KPI_DEFINITIONS: KPIDefinition[] = [
     updateFrequency: "Mensual",
     reference: "docs/DEFINICION_KPIS.md#kpi-15-casos-de-éxito",
     category: "impacto",
-    unit: "empresas"
+    unit: "empresas",
+    isPercentageValue: false
   },
   {
     id: "cobertura_sectorial",
@@ -305,7 +313,8 @@ export const IMPACT_KPI_DEFINITIONS: KPIDefinition[] = [
     updateFrequency: "Semanal",
     reference: "docs/DEFINICION_KPIS.md#kpi-16-cobertura-sectorial",
     category: "impacto",
-    unit: "sectores"
+    unit: "sectores",
+    isPercentageValue: false
   },
   {
     id: "indice_documentacion",
@@ -320,7 +329,8 @@ export const IMPACT_KPI_DEFINITIONS: KPIDefinition[] = [
     updateFrequency: "Diaria",
     reference: "docs/DEFINICION_KPIS.md#kpi-17-índice-de-documentación",
     category: "impacto",
-    unit: "%"
+    unit: "%",
+    isPercentageValue: true
   },
   {
     id: "diversidad_colaboradores",
@@ -335,7 +345,8 @@ export const IMPACT_KPI_DEFINITIONS: KPIDefinition[] = [
     updateFrequency: "Mensual",
     reference: "docs/DEFINICION_KPIS.md#kpi-18-diversidad-de-colaboradores",
     category: "impacto",
-    unit: "tipos"
+    unit: "tipos",
+    isPercentageValue: false
   }
 ];
 
@@ -386,4 +397,5 @@ export interface KPIValue {
   percentage: number;
   icon: React.ElementType;
   color: string;
+  unit?: string; // Unit of measurement
 }

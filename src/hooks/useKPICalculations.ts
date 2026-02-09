@@ -279,9 +279,9 @@ export function useKPICalculations() {
         // Construir array de KPIValue para KPIs estratégicos
         STRATEGIC_KPI_DEFINITIONS.forEach((def) => {
           const value = strategicValuesMap.get(def.id) || 0;
-          // For percentage and ratio KPIs, the value itself is already a percentage
-          // For count-based KPIs like tiempo_medio and empresas_por_tecnico, calculate percentage of target
-          const percentage = def.unit === '%' || def.id === 'tasa_asistencia_eventos' || def.id === 'tasa_ocupacion_formaciones'
+          // For KPIs where value is already a percentage, use value directly for percentage display
+          // For count-based KPIs, calculate percentage of target
+          const percentage = def.isPercentageValue
             ? Math.min(value, 100) // Already a percentage
             : Math.min((value / def.target) * 100, 100);
 
@@ -293,6 +293,7 @@ export function useKPICalculations() {
             percentage,
             icon: def.icon,
             color: def.color,
+            unit: def.unit,
           });
         });
 
@@ -358,8 +359,8 @@ export function useKPICalculations() {
         // Construir array de KPIValue para KPIs de impacto
         IMPACT_KPI_DEFINITIONS.forEach((def) => {
           const value = impactValuesMap.get(def.id) || 0;
-          // For percentage KPIs, the value itself is already a percentage
-          const percentage = def.unit === '%'
+          // For KPIs where value is already a percentage, use value directly for percentage display
+          const percentage = def.isPercentageValue
             ? Math.min(value, 100)
             : Math.min((value / def.target) * 100, 100);
 
@@ -371,6 +372,7 @@ export function useKPICalculations() {
             percentage,
             icon: def.icon,
             color: def.color,
+            unit: def.unit,
           });
         });
 
