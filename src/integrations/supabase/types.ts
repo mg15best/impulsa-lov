@@ -76,6 +76,60 @@ export type Database = {
           },
         ]
       }
+      attachments: {
+        Row: {
+          id: string
+          owner_type: Database["public"]["Enums"]["attachment_owner_type"]
+          owner_id: string
+          file_name: string
+          file_url: string
+          file_size: number | null
+          mime_type: string | null
+          title: string | null
+          description: string | null
+          category: Database["public"]["Enums"]["attachment_category"]
+          tags: string[] | null
+          is_public: boolean | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          owner_type: Database["public"]["Enums"]["attachment_owner_type"]
+          owner_id: string
+          file_name: string
+          file_url: string
+          file_size?: number | null
+          mime_type?: string | null
+          title?: string | null
+          description?: string | null
+          category?: Database["public"]["Enums"]["attachment_category"]
+          tags?: string[] | null
+          is_public?: boolean | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          owner_type?: Database["public"]["Enums"]["attachment_owner_type"]
+          owner_id?: string
+          file_name?: string
+          file_url?: string
+          file_size?: number | null
+          mime_type?: string | null
+          title?: string | null
+          description?: string | null
+          category?: Database["public"]["Enums"]["attachment_category"]
+          tags?: string[] | null
+          is_public?: boolean | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contactos: {
         Row: {
           cargo: string | null
@@ -1110,6 +1164,145 @@ export type Database = {
         }
         Relationships: []
       }
+      grants: {
+        Row: {
+          id: string
+          company_id: string
+          title: string
+          description: string | null
+          status_code: string
+          type_code: string | null
+          program_code: string | null
+          priority_code: string | null
+          amount_requested: number | null
+          amount_awarded: number | null
+          application_deadline: string | null
+          decision_date: string | null
+          grant_period_start: string | null
+          grant_period_end: string | null
+          responsible_user_id: string | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          title: string
+          description?: string | null
+          status_code?: string
+          type_code?: string | null
+          program_code?: string | null
+          priority_code?: string | null
+          amount_requested?: number | null
+          amount_awarded?: number | null
+          application_deadline?: string | null
+          decision_date?: string | null
+          grant_period_start?: string | null
+          grant_period_end?: string | null
+          responsible_user_id?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          title?: string
+          description?: string | null
+          status_code?: string
+          type_code?: string | null
+          program_code?: string | null
+          priority_code?: string | null
+          amount_requested?: number | null
+          amount_awarded?: number | null
+          application_deadline?: string | null
+          decision_date?: string | null
+          grant_period_start?: string | null
+          grant_period_end?: string | null
+          responsible_user_id?: string | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grants_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      grant_applications: {
+        Row: {
+          id: string
+          grant_id: string
+          title: string
+          description: string | null
+          status_code: string
+          submitted_date: string | null
+          review_date: string | null
+          decision_date: string | null
+          assigned_to_id: string | null
+          feedback: string | null
+          documents_url: string | null
+          order_index: number | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          grant_id: string
+          title: string
+          description?: string | null
+          status_code?: string
+          submitted_date?: string | null
+          review_date?: string | null
+          decision_date?: string | null
+          assigned_to_id?: string | null
+          feedback?: string | null
+          documents_url?: string | null
+          order_index?: number | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          grant_id?: string
+          title?: string
+          description?: string | null
+          status_code?: string
+          submitted_date?: string | null
+          review_date?: string | null
+          decision_date?: string | null
+          assigned_to_id?: string | null
+          feedback?: string | null
+          documents_url?: string | null
+          order_index?: number | null
+          notes?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grant_applications_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "grants"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       evidencias: {
         Row: {
           id: string
@@ -1299,6 +1492,33 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "tecnico" | "auditor" | "it"
+      attachment_category:
+        | "document"
+        | "image"
+        | "video"
+        | "certificate"
+        | "report"
+        | "contract"
+        | "invoice"
+        | "presentation"
+        | "other"
+      attachment_owner_type:
+        | "empresa"
+        | "contacto"
+        | "asesoramiento"
+        | "evento"
+        | "formacion"
+        | "evidencia"
+        | "colaborador"
+        | "activity"
+        | "action_plan"
+        | "action_plan_item"
+        | "report"
+        | "opportunity"
+        | "opportunity_note"
+        | "grant"
+        | "grant_application"
+        | "company_compliance"
       estado_asesoramiento:
         | "programado"
         | "en_curso"

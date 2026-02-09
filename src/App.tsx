@@ -22,6 +22,7 @@ import StateTransitionsDemo from "./pages/StateTransitionsDemo";
 import PlanesAccion from "./pages/PlanesAccion";
 import Informes from "./pages/Informes";
 import Oportunidades from "./pages/Oportunidades";
+import Grants from "./pages/Grants";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/planes-accion" element={<PlanesAccion />} />
               <Route path="/informes" element={<Informes />} />
               <Route path="/oportunidades" element={<Oportunidades />} />
+              <Route path="/grants" element={<Grants />} />
               <Route path="/configuracion" element={<Configuracion />} />
               <Route path="/integraciones" element={<Integraciones />} />
               <Route path="/demo-transiciones" element={<StateTransitionsDemo />} />
