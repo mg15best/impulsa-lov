@@ -14,7 +14,8 @@ import {
   Activity,
   ListChecks,
   ClipboardCheck,
-  Target
+  Target,
+  Gift
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +46,7 @@ const mainNavItems = [
   { title: "Empresas", url: "/empresas", icon: Building2 },
   { title: "Contactos", url: "/contactos", icon: Users },
   { title: "Oportunidades", url: "/oportunidades", icon: Target },
+  { title: "Subvenciones", url: "/grants", icon: Gift },
   { title: "Asesoramientos", url: "/asesoramientos", icon: ClipboardList },
   { title: "Planes de Acción", url: "/planes-accion", icon: ListChecks },
   { title: "Informes", url: "/informes", icon: ClipboardCheck },
