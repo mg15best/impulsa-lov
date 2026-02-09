@@ -16,6 +16,7 @@ import { PermissionButton } from "@/components/PermissionButton";
 import { CatalogSelect } from "@/components/CatalogSelect";
 import { useCatalogLookup, resolveLabelFromLookup } from "@/hooks/useCatalog";
 import { Plus, Search, Gift, Filter, Loader2, Eye, Trash2, Edit, FileText } from "lucide-react";
+import { AttachmentsList } from "@/components/attachments";
 import type { Database } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 
@@ -859,6 +860,17 @@ export default function Grants() {
                     No hay solicitudes para esta subvención
                   </div>
                 )}
+              </div>
+
+              {/* Attachments Section */}
+              <div className="border-t pt-6">
+                <AttachmentsList
+                  ownerType="grant"
+                  ownerId={selectedGrant.id}
+                  title="Documentos de la Subvención"
+                  description="Contratos, bases reguladoras, resoluciones y otros documentos"
+                  allowedCategories={['document', 'contract', 'certificate', 'report']}
+                />
               </div>
             </div>
           )}
