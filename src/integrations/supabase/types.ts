@@ -1644,6 +1644,131 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          id: string
+          entity_type: Database["public"]["Enums"]["task_entity_type"]
+          entity_id: string | null
+          titulo: string
+          descripcion: string | null
+          estado: Database["public"]["Enums"]["task_status"]
+          prioridad: Database["public"]["Enums"]["task_priority"]
+          fecha_vencimiento: string | null
+          fecha_inicio: string | null
+          fecha_completado: string | null
+          responsable_id: string | null
+          source: string | null
+          template_id: string | null
+          tags: string[] | null
+          observaciones: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          entity_type?: Database["public"]["Enums"]["task_entity_type"]
+          entity_id?: string | null
+          titulo: string
+          descripcion?: string | null
+          estado?: Database["public"]["Enums"]["task_status"]
+          prioridad?: Database["public"]["Enums"]["task_priority"]
+          fecha_vencimiento?: string | null
+          fecha_inicio?: string | null
+          fecha_completado?: string | null
+          responsable_id?: string | null
+          source?: string | null
+          template_id?: string | null
+          tags?: string[] | null
+          observaciones?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          entity_type?: Database["public"]["Enums"]["task_entity_type"]
+          entity_id?: string | null
+          titulo?: string
+          descripcion?: string | null
+          estado?: Database["public"]["Enums"]["task_status"]
+          prioridad?: Database["public"]["Enums"]["task_priority"]
+          fecha_vencimiento?: string | null
+          fecha_inicio?: string | null
+          fecha_completado?: string | null
+          responsable_id?: string | null
+          source?: string | null
+          template_id?: string | null
+          tags?: string[] | null
+          observaciones?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "task_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_templates: {
+        Row: {
+          id: string
+          name: string
+          trigger: Database["public"]["Enums"]["template_trigger"]
+          title_template: string
+          description_template: string | null
+          default_due_days: number | null
+          default_priority: Database["public"]["Enums"]["task_priority"] | null
+          default_estado: Database["public"]["Enums"]["task_status"] | null
+          required_role: Database["public"]["Enums"]["app_role"] | null
+          assign_to_creator: boolean | null
+          is_active: boolean | null
+          metadata: Json | null
+          tags: string[] | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          trigger: Database["public"]["Enums"]["template_trigger"]
+          title_template: string
+          description_template?: string | null
+          default_due_days?: number | null
+          default_priority?: Database["public"]["Enums"]["task_priority"] | null
+          default_estado?: Database["public"]["Enums"]["task_status"] | null
+          required_role?: Database["public"]["Enums"]["app_role"] | null
+          assign_to_creator?: boolean | null
+          is_active?: boolean | null
+          metadata?: Json | null
+          tags?: string[] | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          trigger?: Database["public"]["Enums"]["template_trigger"]
+          title_template?: string
+          description_template?: string | null
+          default_due_days?: number | null
+          default_priority?: Database["public"]["Enums"]["task_priority"] | null
+          default_estado?: Database["public"]["Enums"]["task_status"] | null
+          required_role?: Database["public"]["Enums"]["app_role"] | null
+          assign_to_creator?: boolean | null
+          is_active?: boolean | null
+          metadata?: Json | null
+          tags?: string[] | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1780,6 +1905,37 @@ export type Database = {
         | "formacion"
         | "material"
         | "general"
+      task_status:
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "on_hold"
+      task_priority:
+        | "low"
+        | "medium"
+        | "high"
+        | "urgent"
+      task_entity_type:
+        | "empresa"
+        | "evento"
+        | "formacion"
+        | "colaborador"
+        | "material"
+        | "dissemination_impact"
+        | "opportunity"
+        | "grant"
+        | "action_plan"
+        | "report"
+        | "general"
+      template_trigger:
+        | "empresa_created"
+        | "evento_created"
+        | "formacion_created"
+        | "colaborador_created"
+        | "opportunity_created"
+        | "grant_created"
+        | "manual"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1976,6 +2132,10 @@ export const Constants = {
       material_status: ["draft", "review", "published", "archived"],
       dissemination_status: ["planned", "active", "completed", "cancelled"],
       dissemination_entity_type: ["empresa", "evento", "formacion", "material", "general"],
+      task_status: ["pending", "in_progress", "completed", "cancelled", "on_hold"],
+      task_priority: ["low", "medium", "high", "urgent"],
+      task_entity_type: ["empresa", "evento", "formacion", "colaborador", "material", "dissemination_impact", "opportunity", "grant", "action_plan", "report", "general"],
+      template_trigger: ["empresa_created", "evento_created", "formacion_created", "colaborador_created", "opportunity_created", "grant_created", "manual"],
     },
   },
 } as const
