@@ -15,7 +15,10 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { EstadoSelector } from "@/components/EstadoSelector";
-import { Plus, Search, Calendar, Filter, Loader2 } from "lucide-react";
+import { EventInvitesManager } from "@/components/EventInvitesManager";
+import { EventAttendanceManager } from "@/components/EventAttendanceManager";
+import { EventSurveysManager } from "@/components/EventSurveysManager";
+import { Plus, Search, Calendar, Filter, Loader2, ArrowLeft } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { useCatalogLookup, resolveLabelFromLookup } from "@/hooks/useCatalog";
 import { CatalogSelect } from "@/components/CatalogSelect";
@@ -37,6 +40,7 @@ export default function Eventos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("all");
   const [filterEstado, setFilterEstado] = useState<string>("all");
+  const [selectedEvento, setSelectedEvento] = useState<Evento | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -140,6 +144,99 @@ export default function Eventos() {
         <p className="text-muted-foreground">
           Configura Supabase para habilitar esta vista.
         </p>
+      </div>
+    );
+  }
+
+  // If an evento is selected, show detail view with invites, attendance, and surveys
+  if (selectedEvento) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={() => setSelectedEvento(null)}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Volver
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{selectedEvento.nombre}</h1>
+            <p className="text-muted-foreground">
+              {resolveLabelFromLookup(tipoLookup, selectedEvento.tipo)} · {selectedEvento.ubicacion || "Sin ubicación"}
+            </p>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Detalles del Evento</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label className="text-sm font-medium">Tipo</Label>
+                <p className="text-sm text-muted-foreground">{resolveLabelFromLookup(tipoLookup, selectedEvento.tipo)}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Estado</Label>
+                <Badge className={estadoColors[selectedEvento.estado]}>
+                  {resolveLabelFromLookup(estadoLookup, selectedEvento.estado)}
+                </Badge>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Fecha</Label>
+                <p className="text-sm text-muted-foreground">
+                  {selectedEvento.fecha ? new Date(selectedEvento.fecha).toLocaleDateString() : "-"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Duración</Label>
+                <p className="text-sm text-muted-foreground">{selectedEvento.duracion_minutos || 0} minutos</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Formato</Label>
+                <p className="text-sm text-muted-foreground">{selectedEvento.formato || "-"}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Ubicación</Label>
+                <p className="text-sm text-muted-foreground">{selectedEvento.ubicacion || "-"}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Ponentes</Label>
+                <p className="text-sm text-muted-foreground">{selectedEvento.ponentes || "-"}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Asistentes Esperados</Label>
+                <p className="text-sm text-muted-foreground">{selectedEvento.asistentes_esperados || 0}</p>
+              </div>
+            </div>
+            {selectedEvento.objetivo && (
+              <div>
+                <Label className="text-sm font-medium">Objetivo</Label>
+                <p className="text-sm text-muted-foreground">{selectedEvento.objetivo}</p>
+              </div>
+            )}
+            {selectedEvento.descripcion && (
+              <div>
+                <Label className="text-sm font-medium">Descripción</Label>
+                <p className="text-sm text-muted-foreground">{selectedEvento.descripcion}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <EventInvitesManager 
+          eventoId={selectedEvento.id} 
+          eventoNombre={selectedEvento.nombre}
+        />
+
+        <EventAttendanceManager 
+          eventoId={selectedEvento.id} 
+          eventoNombre={selectedEvento.nombre}
+        />
+
+        <EventSurveysManager 
+          eventoId={selectedEvento.id} 
+          eventoNombre={selectedEvento.nombre}
+        />
       </div>
     );
   }
@@ -431,7 +528,11 @@ export default function Eventos() {
               </TableHeader>
               <TableBody>
                 {filteredEventos.map((evento) => (
-                  <TableRow key={evento.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableRow 
+                    key={evento.id} 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => setSelectedEvento(evento)}
+                  >
                     <TableCell className="font-medium">{evento.nombre}</TableCell>
                     <TableCell>{resolveLabelFromLookup(tipoLookup, evento.tipo)}</TableCell>
                     <TableCell>{evento.fecha ? new Date(evento.fecha).toLocaleDateString() : "-"}</TableCell>
