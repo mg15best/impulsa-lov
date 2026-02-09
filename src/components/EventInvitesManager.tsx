@@ -93,7 +93,11 @@ export function EventInvitesManager({ eventoId, eventoNombre }: EventInvitesMana
   const handleUpdateStatus = async (inviteId: string, newStatus: InviteStatus) => {
     if (!supabase) return;
 
-    const updates: any = { status: newStatus };
+    const updates: { 
+      status: InviteStatus; 
+      sent_date?: string; 
+      response_date?: string; 
+    } = { status: newStatus };
     if (newStatus === 'sent' && !invites.find(i => i.id === inviteId)?.sent_date) {
       updates.sent_date = new Date().toISOString();
     }

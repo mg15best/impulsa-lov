@@ -15,7 +15,8 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { EstadoSelector } from "@/components/EstadoSelector";
-import { Plus, Search, GraduationCap, Filter, Loader2 } from "lucide-react";
+import { TrainingAttendanceManager } from "@/components/TrainingAttendanceManager";
+import { Plus, Search, GraduationCap, Filter, Loader2, ArrowLeft } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Formacion = Database["public"]["Tables"]["formaciones"]["Row"];
@@ -48,6 +49,7 @@ export default function Formaciones() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("all");
   const [filterEstado, setFilterEstado] = useState<string>("all");
+  const [selectedFormacion, setSelectedFormacion] = useState<Formacion | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -149,6 +151,81 @@ export default function Formaciones() {
         <p className="text-muted-foreground">
           Configura Supabase para habilitar esta vista.
         </p>
+      </div>
+    );
+  }
+
+  // If a formacion is selected, show detail view with attendance
+  if (selectedFormacion) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={() => setSelectedFormacion(null)}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Volver
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{selectedFormacion.titulo}</h1>
+            <p className="text-muted-foreground">
+              {tipoLabels[selectedFormacion.tipo]} · {selectedFormacion.formador || "Sin formador"}
+            </p>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Detalles de la Formación</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label className="text-sm font-medium">Tipo</Label>
+                <p className="text-sm text-muted-foreground">{tipoLabels[selectedFormacion.tipo]}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Estado</Label>
+                <Badge className={estadoColors[selectedFormacion.estado]}>
+                  {estadoLabels[selectedFormacion.estado]}
+                </Badge>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Fecha Inicio</Label>
+                <p className="text-sm text-muted-foreground">
+                  {selectedFormacion.fecha_inicio ? new Date(selectedFormacion.fecha_inicio).toLocaleDateString() : "-"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Duración</Label>
+                <p className="text-sm text-muted-foreground">{selectedFormacion.duracion_horas || 0}h</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Modalidad</Label>
+                <p className="text-sm text-muted-foreground">{selectedFormacion.modalidad || "-"}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Ubicación</Label>
+                <p className="text-sm text-muted-foreground">{selectedFormacion.ubicacion || "-"}</p>
+              </div>
+            </div>
+            {selectedFormacion.descripcion && (
+              <div>
+                <Label className="text-sm font-medium">Descripción</Label>
+                <p className="text-sm text-muted-foreground">{selectedFormacion.descripcion}</p>
+              </div>
+            )}
+            {selectedFormacion.objetivos && (
+              <div>
+                <Label className="text-sm font-medium">Objetivos</Label>
+                <p className="text-sm text-muted-foreground">{selectedFormacion.objetivos}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <TrainingAttendanceManager 
+          formacionId={selectedFormacion.id} 
+          formacionTitulo={selectedFormacion.titulo}
+        />
       </div>
     );
   }
@@ -459,7 +536,11 @@ export default function Formaciones() {
               </TableHeader>
               <TableBody>
                 {filteredFormaciones.map((formacion) => (
-                  <TableRow key={formacion.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableRow 
+                    key={formacion.id} 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => setSelectedFormacion(formacion)}
+                  >
                     <TableCell className="font-medium">{formacion.titulo}</TableCell>
                     <TableCell>{tipoLabels[formacion.tipo]}</TableCell>
                     <TableCell>
