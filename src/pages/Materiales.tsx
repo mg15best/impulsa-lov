@@ -17,7 +17,7 @@ import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { useCatalogLookup, resolveLabelFromLookup } from "@/hooks/useCatalog";
 import { CatalogSelect } from "@/components/CatalogSelect";
-import { Plus, Search, FileText, Filter, Loader2, Download, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Search, FolderOpen, Filter, Loader2, Download, Edit, Trash2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Material = Database["public"]["Tables"]["materials"]["Row"];
@@ -158,8 +158,8 @@ export default function Materiales() {
     try {
       const dataToSave = {
         ...formData,
-        fecha_publicacion: formData.estado === "published" && !selectedMaterial?.fecha_publicacion 
-          ? new Date().toISOString() 
+        fecha_publicacion: formData.estado === "published" 
+          ? (selectedMaterial?.fecha_publicacion || new Date().toISOString())
           : selectedMaterial?.fecha_publicacion || null,
       };
 
@@ -183,10 +183,11 @@ export default function Materiales() {
       setDialogOpen(false);
       resetForm();
       reload();
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       toast({ 
         title: "Error al guardar material", 
-        description: error.message, 
+        description: err.message, 
         variant: "destructive" 
       });
     } finally {
@@ -206,10 +207,11 @@ export default function Materiales() {
       if (error) throw error;
       toast({ title: "Material eliminado", description: "El material se ha eliminado correctamente." });
       reload();
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       toast({ 
         title: "Error al eliminar material", 
-        description: error.message, 
+        description: err.message, 
         variant: "destructive" 
       });
     }
@@ -224,7 +226,14 @@ export default function Materiales() {
         p_material_id: material.id
       });
 
-      if (error) console.error("Error incrementing downloads:", error);
+      if (error) {
+        console.error("Error incrementing downloads:", error);
+        toast({
+          title: "Advertencia",
+          description: "No se pudo registrar la descarga, pero puedes continuar.",
+          variant: "default"
+        });
+      }
 
       // Open download URL
       window.open(material.url_descarga, '_blank');
@@ -235,10 +244,11 @@ export default function Materiales() {
       });
       
       reload();
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       toast({ 
         title: "Error en la descarga", 
-        description: error.message, 
+        description: err.message, 
         variant: "destructive" 
       });
     }
@@ -260,7 +270,7 @@ export default function Materiales() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <FileText className="h-8 w-8" />
+            <FolderOpen className="h-8 w-8" />
             Materiales
           </h1>
           <p className="text-muted-foreground">

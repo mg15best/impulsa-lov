@@ -224,10 +224,11 @@ export default function ImpactosDifusion() {
       setDialogOpen(false);
       resetForm();
       reload();
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       toast({ 
         title: "Error al guardar impacto", 
-        description: error.message, 
+        description: err.message, 
         variant: "destructive" 
       });
     } finally {
@@ -247,10 +248,11 @@ export default function ImpactosDifusion() {
       if (error) throw error;
       toast({ title: "Impacto eliminado", description: "El impacto de difusión se ha eliminado correctamente." });
       reload();
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       toast({ 
         title: "Error al eliminar impacto", 
-        description: error.message, 
+        description: err.message, 
         variant: "destructive" 
       });
     }

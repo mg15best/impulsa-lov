@@ -74,15 +74,16 @@ CREATE INDEX idx_materials_formacion_ids ON public.materials USING gin(formacion
 ALTER TABLE public.materials ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for materials
--- All authenticated users can view published materials
+-- Authenticated users with roles can view published materials, creators and admins can view all
 CREATE POLICY "Materials are viewable by authenticated users"
   ON public.materials FOR SELECT
   TO authenticated
   USING (
     estado = 'published' OR
+    created_by = auth.uid() OR
     EXISTS (
       SELECT 1 FROM public.user_roles 
-      WHERE user_id = auth.uid()
+      WHERE user_id = auth.uid() AND role = 'admin'
     )
   );
 

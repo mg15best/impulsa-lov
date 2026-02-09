@@ -107,14 +107,16 @@ CREATE INDEX idx_dissemination_impacts_metricas ON public.dissemination_impacts 
 ALTER TABLE public.dissemination_impacts ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for dissemination_impacts
--- All authenticated users can view dissemination impacts
+-- Users can view completed/active dissemination impacts; creators and admins can view all
 CREATE POLICY "Dissemination impacts are viewable by authenticated users"
   ON public.dissemination_impacts FOR SELECT
   TO authenticated
   USING (
+    estado IN ('completed', 'active') OR
+    created_by = auth.uid() OR
     EXISTS (
       SELECT 1 FROM public.user_roles 
-      WHERE user_id = auth.uid()
+      WHERE user_id = auth.uid() AND role = 'admin'
     )
   );
 
