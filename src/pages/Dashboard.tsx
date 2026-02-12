@@ -24,6 +24,14 @@ type TechnicianTaskSummary = {
   overdue: number;
 };
 
+function formatLocalDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 /**
  * Dashboard Principal - Impulsa LOV
  * 
@@ -92,7 +100,7 @@ export default function Dashboard() {
         .from("tasks")
         .select("estado, fecha_vencimiento, responsable_id");
 
-      const nowIso = new Date().toISOString();
+      const todayDate = formatLocalDate(new Date());
       const pendingStatuses = new Set(["pending", "in_progress", "on_hold"]);
       const tasksData = (taskRows || []) as Pick<Task, "estado" | "fecha_vencimiento" | "responsable_id">[];
 
@@ -101,7 +109,7 @@ export default function Dashboard() {
         (task) =>
           pendingStatuses.has(task.estado) &&
           Boolean(task.fecha_vencimiento) &&
-          task.fecha_vencimiento < nowIso,
+          task.fecha_vencimiento < todayDate,
       ).length;
       const completed = tasksData.filter((task) => task.estado === "completed").length;
 
@@ -131,7 +139,7 @@ export default function Dashboard() {
 
         if (pendingStatuses.has(task.estado)) {
           current.pending += 1;
-          if (task.fecha_vencimiento && task.fecha_vencimiento < nowIso) {
+          if (task.fecha_vencimiento && task.fecha_vencimiento < todayDate) {
             current.overdue += 1;
           }
         }
