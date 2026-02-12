@@ -120,6 +120,34 @@ INSERT INTO task_templates (
 - **Source**: 'automatica'
 - **Template ID**: Referencia a la plantilla 'diagnostico_inicial_empresa'
 
+
+
+### Regla 2: Cadena automática empresa → informe → plan
+
+Al completar una tarea de la cadena de acompañamiento, el sistema crea automáticamente la siguiente fase para la misma empresa:
+
+1. Diagnóstico inicial
+2. Elaboración de informe
+3. Entrega del informe
+4. Plan de acción
+5. Seguimiento
+
+Comportamiento:
+- Solo se crea la siguiente fase cuando la fase actual pasa a `completed`.
+- Se evita la duplicación de fases (si ya existe la siguiente tarea para la misma empresa, no se vuelve a crear).
+- La nueva tarea se crea con `source = 'workflow'` y conservando el `responsable_id` de la tarea completada.
+- La `fecha_vencimiento` de la nueva fase se calcula desde la fecha real de completado de la fase anterior (`fecha_completado`) más los días definidos en `default_due_days` de la plantilla.
+
+### Regla 3: Estados de tarea conectados con fechas reales
+
+Se añade sincronización automática de fechas en la tabla `tasks`:
+
+- Al pasar una tarea a `in_progress`, si no tiene `fecha_inicio`, se establece con la fecha actual.
+- Al pasar una tarea a `completed`, se asegura `fecha_inicio` y se registra `fecha_completado` con timestamp actual.
+- Si una tarea deja de estar `completed`, se limpia `fecha_completado`.
+
+Esto garantiza trazabilidad temporal real sobre el avance de cada fase.
+
 ## Implementación Técnica
 
 ### Funciones SQL
