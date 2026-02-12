@@ -71,6 +71,7 @@ const prioridadColors: Record<TaskPriority, string> = {
 const entityTypeLabels: Record<TaskEntityType, string> = {
   general: "General",
   empresa: "Empresa",
+  asesoramiento: "Asesoramiento",
   evento: "Evento",
   formacion: "Formación",
   colaborador: "Colaborador",

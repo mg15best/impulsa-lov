@@ -186,10 +186,11 @@ export default function Informes() {
       setEditingReport(null);
       setFormData(initialFormData);
       reload();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "No se pudo guardar el informe";
       toast({
         title: "Error",
-        description: error.message || "No se pudo guardar el informe",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

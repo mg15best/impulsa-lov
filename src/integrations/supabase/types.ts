@@ -1918,6 +1918,7 @@ export type Database = {
         | "urgent"
       task_entity_type:
         | "empresa"
+        | "asesoramiento"
         | "evento"
         | "formacion"
         | "colaborador"
@@ -1930,6 +1931,8 @@ export type Database = {
         | "general"
       template_trigger:
         | "empresa_created"
+        | "asesoramiento_created"
+        | "asesoramiento_completed"
         | "evento_created"
         | "formacion_created"
         | "colaborador_created"
@@ -2134,8 +2137,8 @@ export const Constants = {
       dissemination_entity_type: ["empresa", "evento", "formacion", "material", "general"],
       task_status: ["pending", "in_progress", "completed", "cancelled", "on_hold"],
       task_priority: ["low", "medium", "high", "urgent"],
-      task_entity_type: ["empresa", "evento", "formacion", "colaborador", "material", "dissemination_impact", "opportunity", "grant", "action_plan", "report", "general"],
-      template_trigger: ["empresa_created", "evento_created", "formacion_created", "colaborador_created", "opportunity_created", "grant_created", "manual"],
+      task_entity_type: ["empresa", "asesoramiento", "evento", "formacion", "colaborador", "material", "dissemination_impact", "opportunity", "grant", "action_plan", "report", "general"],
+      template_trigger: ["empresa_created", "asesoramiento_created", "asesoramiento_completed", "evento_created", "formacion_created", "colaborador_created", "opportunity_created", "grant_created", "manual"],
     },
   },
 } as const
