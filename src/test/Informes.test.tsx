@@ -38,7 +38,7 @@ vi.mock("@/hooks/useDataLoader", () => ({
     loading: false,
     reload: vi.fn(),
   }),
-  useLocalSearch: (data: any[], _searchTerm: string) => data,
+  useLocalSearch: <T,>(data: T[], _searchTerm: string) => data,
 }));
 
 vi.mock("@/hooks/useCatalog", () => ({
