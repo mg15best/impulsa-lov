@@ -43,3 +43,4 @@ La app incluye un módulo de integración en `src/integrations/power/` con una p
 - `npm run build`
 - `npm run lint`
 - `npm run test`
+- `./scripts/unify-with-main.sh [main] [merge|rebase]` detecta ramas locales divergentes (ahead/behind) y las actualiza con `main`.
