@@ -16,6 +16,7 @@ interface CatalogSelectProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  fallbackEntries?: Array<{ code: string; label: string }>;
 }
 
 export function CatalogSelect({
@@ -25,8 +26,10 @@ export function CatalogSelect({
   placeholder = "Seleccionar...",
   disabled = false,
   className,
+  fallbackEntries = [],
 }: CatalogSelectProps) {
   const { data: entries, isLoading, error } = useCatalog(catalogType);
+  const resolvedEntries = entries && entries.length > 0 ? entries : fallbackEntries;
 
   if (isLoading) {
     return <Skeleton className="h-10 w-full" />;
@@ -49,7 +52,7 @@ export function CatalogSelect({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {entries?.map((entry) => (
+        {resolvedEntries.map((entry) => (
           <SelectItem key={entry.code} value={entry.code}>
             {entry.label}
           </SelectItem>
