@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,27 +7,28 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import Empresas from "./pages/Empresas";
-import Contactos from "./pages/Contactos";
-import Asesoramientos from "./pages/Asesoramientos";
-import Eventos from "./pages/Eventos";
-import Formaciones from "./pages/Formaciones";
-import Evidencias from "./pages/Evidencias";
-import Colaboradores from "./pages/Colaboradores";
-import Actividades from "./pages/Actividades";
-import Configuracion from "./pages/Configuracion";
-import Integraciones from "./pages/Integraciones";
-import StateTransitionsDemo from "./pages/StateTransitionsDemo";
-import PlanesAccion from "./pages/PlanesAccion";
-import Informes from "./pages/Informes";
-import Oportunidades from "./pages/Oportunidades";
-import Grants from "./pages/Grants";
-import Materiales from "./pages/Materiales";
-import ImpactosDifusion from "./pages/ImpactosDifusion";
-import Tareas from "./pages/Tareas";
-import NotFound from "./pages/NotFound";
+
+const Auth = lazy(() => import("./pages/Auth"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Empresas = lazy(() => import("./pages/Empresas"));
+const Contactos = lazy(() => import("./pages/Contactos"));
+const Asesoramientos = lazy(() => import("./pages/Asesoramientos"));
+const Eventos = lazy(() => import("./pages/Eventos"));
+const Formaciones = lazy(() => import("./pages/Formaciones"));
+const Evidencias = lazy(() => import("./pages/Evidencias"));
+const Colaboradores = lazy(() => import("./pages/Colaboradores"));
+const Actividades = lazy(() => import("./pages/Actividades"));
+const Configuracion = lazy(() => import("./pages/Configuracion"));
+const Integraciones = lazy(() => import("./pages/Integraciones"));
+const StateTransitionsDemo = lazy(() => import("./pages/StateTransitionsDemo"));
+const PlanesAccion = lazy(() => import("./pages/PlanesAccion"));
+const Informes = lazy(() => import("./pages/Informes"));
+const Oportunidades = lazy(() => import("./pages/Oportunidades"));
+const Grants = lazy(() => import("./pages/Grants"));
+const Materiales = lazy(() => import("./pages/Materiales"));
+const ImpactosDifusion = lazy(() => import("./pages/ImpactosDifusion"));
+const Tareas = lazy(() => import("./pages/Tareas"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -38,40 +40,42 @@ const App = () => (
         <Sonner />
         <SpeedInsights />
         <BrowserRouter>
-          <Routes>
-            <Route
-              path="/auth"
-              element={
-                import.meta.env.VITE_LOCAL_MODE === "true" ? (
-                  <Navigate to="/" replace />
-                ) : (
-                  <Auth />
-                )
-              }
-            />
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/empresas" element={<Empresas />} />
-              <Route path="/contactos" element={<Contactos />} />
-              <Route path="/asesoramientos" element={<Asesoramientos />} />
-              <Route path="/actividades" element={<Actividades />} />
-              <Route path="/eventos" element={<Eventos />} />
-              <Route path="/formaciones" element={<Formaciones />} />
-              <Route path="/evidencias" element={<Evidencias />} />
-              <Route path="/colaboradores" element={<Colaboradores />} />
-              <Route path="/planes-accion" element={<PlanesAccion />} />
-              <Route path="/informes" element={<Informes />} />
-              <Route path="/oportunidades" element={<Oportunidades />} />
-              <Route path="/grants" element={<Grants />} />
-              <Route path="/materiales" element={<Materiales />} />
-              <Route path="/impactos-difusion" element={<ImpactosDifusion />} />
-              <Route path="/tareas" element={<Tareas />} />
-              <Route path="/configuracion" element={<Configuracion />} />
-              <Route path="/integraciones" element={<Integraciones />} />
-              <Route path="/demo-transiciones" element={<StateTransitionsDemo />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={null}>
+            <Routes>
+              <Route
+                path="/auth"
+                element={
+                  import.meta.env.VITE_LOCAL_MODE === "true" ? (
+                    <Navigate to="/" replace />
+                  ) : (
+                    <Auth />
+                  )
+                }
+              />
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/empresas" element={<Empresas />} />
+                <Route path="/contactos" element={<Contactos />} />
+                <Route path="/asesoramientos" element={<Asesoramientos />} />
+                <Route path="/actividades" element={<Actividades />} />
+                <Route path="/eventos" element={<Eventos />} />
+                <Route path="/formaciones" element={<Formaciones />} />
+                <Route path="/evidencias" element={<Evidencias />} />
+                <Route path="/colaboradores" element={<Colaboradores />} />
+                <Route path="/planes-accion" element={<PlanesAccion />} />
+                <Route path="/informes" element={<Informes />} />
+                <Route path="/oportunidades" element={<Oportunidades />} />
+                <Route path="/grants" element={<Grants />} />
+                <Route path="/materiales" element={<Materiales />} />
+                <Route path="/impactos-difusion" element={<ImpactosDifusion />} />
+                <Route path="/tareas" element={<Tareas />} />
+                <Route path="/configuracion" element={<Configuracion />} />
+                <Route path="/integraciones" element={<Integraciones />} />
+                <Route path="/demo-transiciones" element={<StateTransitionsDemo />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
