@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,7 +85,7 @@ export function AttachmentsList({
   const { toast } = useToast();
   const { canWrite } = useUserRoles();
 
-  const loadAttachments = async () => {
+  const loadAttachments = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -107,11 +107,11 @@ export function AttachmentsList({
     } finally {
       setLoading(false);
     }
-  };
+  }, [ownerId, ownerType, toast]);
 
   useEffect(() => {
     loadAttachments();
-  }, [ownerType, ownerId]);
+  }, [loadAttachments]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Estás seguro de que quieres eliminar este archivo?")) return;
