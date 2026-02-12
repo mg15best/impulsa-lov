@@ -58,6 +58,39 @@ const estadoColors: Record<EstadoEmpresa, string> = {
   completada: "bg-success/10 text-success",
 };
 
+const legalFormFallbackEntries = [
+  { code: "sl", label: "S.L. (Sociedad Limitada)" },
+  { code: "sa", label: "S.A. (Sociedad Anónima)" },
+  { code: "autonomo", label: "Autónomo" },
+  { code: "cooperativa", label: "Cooperativa" },
+  { code: "asociacion", label: "Asociación" },
+  { code: "fundacion", label: "Fundación" },
+  { code: "slp", label: "S.L.P. (Sociedad Limitada Profesional)" },
+  { code: "cb", label: "C.B. (Comunidad de Bienes)" },
+  { code: "slu", label: "S.L.U. (Sociedad Limitada Unipersonal)" },
+  { code: "other", label: "Otra" },
+];
+
+const leadSourceFallbackEntries = [
+  { code: "web", label: "Sitio Web" },
+  { code: "referral", label: "Referido" },
+  { code: "event", label: "Evento" },
+  { code: "partner", label: "Socio/Partner" },
+  { code: "direct", label: "Contacto Directo" },
+  { code: "campaign", label: "Campaña" },
+  { code: "social_media", label: "Redes Sociales" },
+  { code: "other", label: "Otro" },
+];
+
+const pipelineStatusFallbackEntries = [
+  { code: "lead", label: "Lead" },
+  { code: "qualified", label: "Cualificado" },
+  { code: "proposal", label: "Propuesta" },
+  { code: "negotiation", label: "Negociación" },
+  { code: "won", label: "Ganado" },
+  { code: "lost", label: "Perdido" },
+];
+
 const initialFormData = {
   nombre: "",
   nombre_comercial: "",
@@ -235,11 +268,38 @@ export default function Empresas() {
       ...companyData
     } = formData;
     
+    const normalizeOptional = (value: string) => {
+      const trimmedValue = value.trim();
+      return trimmedValue.length > 0 ? trimmedValue : null;
+    };
+
     // Insert company
     const { data: newCompany, error: companyError } = await supabase
       .from("empresas")
       .insert({
         ...companyData,
+        nombre_comercial: normalizeOptional(companyData.nombre_comercial),
+        cif: normalizeOptional(companyData.cif),
+        forma_juridica: normalizeOptional(companyData.forma_juridica),
+        subsector: normalizeOptional(companyData.subsector),
+        descripcion: normalizeOptional(companyData.descripcion),
+        direccion: normalizeOptional(companyData.direccion),
+        codigo_postal: normalizeOptional(companyData.codigo_postal),
+        municipio: normalizeOptional(companyData.municipio),
+        isla: normalizeOptional(companyData.isla),
+        telefono: normalizeOptional(companyData.telefono),
+        email: normalizeOptional(companyData.email),
+        web: normalizeOptional(companyData.web),
+        contacto_principal: normalizeOptional(companyData.contacto_principal),
+        fecha_constitucion: normalizeOptional(companyData.fecha_constitucion),
+        codigo_estado_pipeline: normalizeOptional(companyData.codigo_estado_pipeline),
+        codigo_origen_lead: normalizeOptional(companyData.codigo_origen_lead),
+        url_formulario_diagnostico: normalizeOptional(companyData.url_formulario_diagnostico),
+        fecha_recepcion_diagnostico: normalizeOptional(companyData.fecha_recepcion_diagnostico),
+        resumen_diagnostico: normalizeOptional(companyData.resumen_diagnostico),
+        fecha_inicio: normalizeOptional(companyData.fecha_inicio),
+        fecha_finalizacion: normalizeOptional(companyData.fecha_finalizacion),
+        codigo_motivo_cierre: normalizeOptional(companyData.codigo_motivo_cierre),
         created_by: user.id,
       })
       .select()
@@ -251,55 +311,40 @@ export default function Empresas() {
       return;
     }
     
-    // Insert compliance record for the new company
-    const { error: complianceError } = await supabase
-      .from("company_compliance")
-      .insert({
-        company_id: newCompany.id,
-        data_protection_consent,
-        data_consent_date: data_consent_date || null,
-        image_rights_consent,
-        image_consent_date: image_consent_date || null,
-        created_by: user.id,
-      });
+    const hasComplianceData =
+      data_protection_consent ||
+      image_rights_consent ||
+      Boolean(data_consent_date) ||
+      Boolean(image_consent_date);
 
-    if (complianceError) {
-      // Compliance creation failed - attempt to rollback by deleting the company
-      console.error("Error creating compliance record:", {
-        error: complianceError,
-        companyId: newCompany.id,
-        userId: user.id,
-        companyName: companyData.nombre,
-        timestamp: new Date().toISOString()
-      });
-      
-      const { error: deleteError } = await supabase
-        .from("empresas")
-        .delete()
-        .eq("id", newCompany.id);
-      
-      if (deleteError) {
-        console.error("Error rolling back company creation:", {
-          error: deleteError,
+    if (hasComplianceData) {
+      const { error: complianceError } = await supabase
+        .from("company_compliance")
+        .insert({
+          company_id: newCompany.id,
+          data_protection_consent,
+          data_consent_date: data_consent_date || null,
+          image_rights_consent,
+          image_consent_date: image_consent_date || null,
+          created_by: user.id,
+        });
+
+      if (complianceError) {
+        console.error("Error creating compliance record:", {
+          error: complianceError,
           companyId: newCompany.id,
           userId: user.id,
-          timestamp: new Date().toISOString()
+          companyName: companyData.nombre,
+          timestamp: new Date().toISOString(),
         });
-        toast({ 
-          title: "Error crítico", 
-          description: "No se pudo crear la empresa con sus consentimientos. Por favor, contacte al administrador.", 
-          variant: "destructive" 
-        });
-      } else {
-        toast({ 
-          title: "Error al crear consentimientos", 
-          description: "No se pudieron guardar los consentimientos. Por favor, intente nuevamente.", 
-          variant: "destructive" 
+
+        toast({
+          title: "Empresa creada con advertencia",
+          description:
+            "La empresa se guardó, pero no se pudieron registrar los consentimientos. Contacte al administrador si necesita guardarlos.",
+          variant: "destructive",
         });
       }
-      
-      setSaving(false);
-      return;
     }
     
     // Success
@@ -380,6 +425,7 @@ export default function Empresas() {
                     value={formData.forma_juridica}
                     onValueChange={(v) => setFormData({ ...formData, forma_juridica: v })}
                     placeholder="Seleccionar forma jurídica"
+                    fallbackEntries={legalFormFallbackEntries}
                   />
                 </div>
               </div>
@@ -511,6 +557,7 @@ export default function Empresas() {
                     value={formData.codigo_origen_lead}
                     onValueChange={(v) => setFormData({ ...formData, codigo_origen_lead: v })}
                     placeholder="Seleccionar origen"
+                    fallbackEntries={leadSourceFallbackEntries}
                   />
                 </div>
               </div>
@@ -609,6 +656,7 @@ export default function Empresas() {
                         value={formData.codigo_estado_pipeline}
                         onValueChange={(v) => setFormData({ ...formData, codigo_estado_pipeline: v })}
                         placeholder="Seleccionar estado"
+                        fallbackEntries={pipelineStatusFallbackEntries}
                       />
                     </div>
                     <div className="space-y-2">
