@@ -18,6 +18,8 @@ Este documento define los estados posibles para cada entidad del sistema y las t
 
 **Importante**: La validación es solo en el frontend. El backend no aplica restricciones (RLS no modificado), pero el frontend guía a los usuarios para seguir los flujos correctos y prevenir errores.
 
+**Fuente de verdad**: la matriz consolidada de contrato se mantiene en `docs/MATRIZ_CANONICA_CONTRATO.md`.
+
 ## Estados de Empresa
 
 ### Estados Disponibles (ENUM: estado_empresa)
@@ -50,16 +52,14 @@ graph LR
 | pendiente    | en_proceso       | Se asigna técnico o se programa primer asesoramiento | - Técnico asignado<br>- Asesoramiento programado |
 | en_proceso   | asesorada        | Se completa al menos un asesoramiento          | - Al menos 1 asesoramiento completado |
 | asesorada    | completada       | Se finaliza proceso de asesoramiento           | - Todos los asesoramientos completados<br>- Informe final generado (opcional) |
-| en_proceso   | pendiente        | Se cancela o pausa el proceso                  | - Ninguna (reversión manual) |
 | asesorada    | en_proceso       | Se requieren asesoramientos adicionales        | - Ninguna (ajuste manual) |
-| completada   | asesorada        | Se reabre el caso                              | - Ninguna (reversión excepcional) |
 
 ### Reglas de Negocio Recomendadas
 
 1. **Estado inicial**: Toda empresa nueva se crea con estado `pendiente`
 2. **Progresión normal**: pendiente → en_proceso → asesorada → completada
-3. **Regresiones permitidas**: Un caso puede volver a estados anteriores si es necesario
-4. **Sin enforcement**: Los usuarios pueden cambiar manualmente entre cualquier estado
+3. **Ajustes acotados**: Se permite retorno `asesorada → en_proceso` para continuar acompañamiento
+4. **Validación en frontend**: La UI solo permite transiciones definidas en `src/lib/stateTransitions.ts`
 5. **Indicador complementario**: `es_caso_exito` puede marcarse en cualquier estado, típicamente en `completada`
 
 ### Campos Relacionados
@@ -102,15 +102,12 @@ graph LR
 | en_curso     | completado       | Finalización del asesoramiento           | - Acta completada (opcional)<br>- Compromisos registrados (opcional) |
 | programado   | cancelado        | Cancelación antes de iniciar             | - Motivo de cancelación (opcional) |
 | en_curso     | cancelado        | Cancelación durante la sesión            | - Motivo de cancelación (recomendado) |
-| cancelado    | programado       | Reprogramación                           | - Nueva fecha asignada |
-| completado   | en_curso         | Corrección/revisión                      | - Ninguna (excepcional) |
 
 ### Reglas de Negocio Recomendadas
 
 1. **Estado inicial**: Todo asesoramiento nuevo se crea con estado `programado`
 2. **Progresión normal**: programado → en_curso → completado
 3. **Cancelación**: Puede ocurrir desde `programado` o `en_curso`
-4. **Reprogramación**: Un asesoramiento `cancelado` puede volver a `programado`
 5. **Documentación**: Se recomienda completar acta, compromisos y próximos pasos al marcar como `completado`
 6. **Informe**: El campo `informe_generado` se marca después de completar
 
@@ -162,9 +159,6 @@ graph LR
 | en_curso     | completado       | Finalización del evento                  | - Asistentes confirmados registrados |
 | planificado  | cancelado        | Cancelación en planificación             | - Motivo en observaciones |
 | confirmado   | cancelado        | Cancelación después de confirmación      | - Notificación a asistentes |
-| en_curso     | cancelado        | Cancelación durante ejecución            | - Motivo crítico (excepcional) |
-| cancelado    | planificado      | Replanificación                          | - Nueva fecha |
-| confirmado   | planificado      | Cambio significativo que requiere replanificación | - Actualización de datos |
 
 ### Reglas de Negocio Recomendadas
 
@@ -217,8 +211,6 @@ graph LR
 | en_curso     | completada       | Finalización de la formación             | - Fecha actual >= fecha_fin<br>- Materiales entregados (opcional) |
 | planificada  | cancelada        | Cancelación antes de iniciar             | - Motivo en observaciones<br>- Notificación a inscritos |
 | en_curso     | cancelada        | Cancelación durante ejecución            | - Motivo crítico (excepcional)<br>- Gestión de certificaciones parciales |
-| cancelada    | planificada      | Replanificación                          | - Nueva fecha de inicio |
-| completada   | en_curso         | Corrección/revisión                      | - Ninguna (excepcional) |
 
 ### Reglas de Negocio Recomendadas
 
@@ -381,8 +373,8 @@ ACTIVIDADES COMPLEMENTARIAS
 
 ### Reglas Globales
 
-1. **Sin enforcement automático**: El sistema no fuerza transiciones específicas, pero documenta las recomendadas
-2. **Cambios manuales permitidos**: Usuarios con permisos pueden cambiar cualquier estado manualmente
+1. **Enforcement funcional en frontend**: El sistema aplica transiciones válidas en formularios mediante `src/lib/stateTransitions.ts`
+2. **Cambios manuales acotados**: Usuarios con permisos pueden cambiar estado dentro de las transiciones válidas
 3. **Auditoría**: El campo `updated_at` registra automáticamente cambios de estado
 4. **Historial**: Se recomienda implementar tabla de historial de estados (no incluida en v1.0)
 
@@ -390,12 +382,11 @@ ACTIVIDADES COMPLEMENTARIAS
 
 **Administradores**:
 - Pueden cambiar cualquier estado de cualquier entidad
-- Pueden revertir estados (ej: completado → en_proceso)
-- Pueden forzar estados no convencionales
+- Deben respetar transiciones canónicas y estados terminales en la UI
 
 **Técnicos**:
 - Pueden cambiar estados de entidades que gestionan
-- Deben seguir flujos recomendados (no obligatorios)
+- Deben seguir flujos válidos definidos en frontend
 - Pueden crear evidencias y documentación
 
 ### Validaciones Recomendadas (No Obligatorias)
@@ -449,9 +440,9 @@ Para cada entidad con estados, se recomienda mantener:
 
 ## Notas Importantes
 
-1. **Flexibilidad**: El sistema permite flexibilidad en las transiciones para adaptarse a casos excepcionales
+1. **Transiciones canónicas**: El sistema define rutas explícitas por entidad y evita desvíos en la UI
 
-2. **Documentación**: Esta documentación sirve como guía, no como restricción técnica
+2. **Contrato funcional**: Esta documentación refleja la restricción funcional efectiva del frontend
 
 3. **Mejora continua**: Las transiciones pueden refinarse según la experiencia de uso
 
@@ -459,13 +450,13 @@ Para cada entidad con estados, se recomienda mantener:
 
 5. **Reportes**: Los estados permiten generar reportes del flujo de trabajo
 
-6. **Sin bloqueos**: Ninguna transición está bloqueada técnicamente
+6. **Bloqueo funcional en UI**: Transiciones fuera del flujo no son seleccionables en formularios
 
-7. **Reversibilidad**: Casi todas las transiciones son reversibles para corregir errores
+7. **Estados terminales**: Algunos estados son terminales y no permiten reversión en UI
 
 8. **Consistencia**: Se recomienda seguir los flujos documentados para mantener la coherencia del sistema
 
-9. **Futuras mejoras**: Podría implementarse un sistema de workflow con enforcement opcional en versiones futuras
+9. **Backend**: El backend mantiene flexibilidad; el control de transición canónica se implementa en frontend
 
 10. **Integración**: Los estados deben sincronizarse correctamente con sistemas externos (PowerBI, etc.)
 

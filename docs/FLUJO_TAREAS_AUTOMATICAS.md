@@ -419,3 +419,53 @@ ORDER BY tasks_created DESC;
 - Dashboard de monitoreo de plantillas
 - Historial de cambios en plantillas
 - Dependencias entre tareas automáticas
+
+
+## Actualización Fase 3 (Gobernanza y Escalabilidad)
+
+### 1) Reglas formales de asignación de responsable
+
+Se añade un resolvedor central de responsable (`resolve_task_responsable`) con prioridad:
+
+1. Si la plantilla define `assign_to_creator = true`, se asigna al creador del evento.
+2. Si `required_role = tecnico` y la entidad es `empresa`, se intenta `empresas.tecnico_asignado_id`.
+3. Si no existe responsable por reglas de negocio, se usa fallback determinista por rol (`user_roles` ordenado por `created_at`).
+4. Si no hay usuarios del rol requerido, se permite `NULL` y se registra evento de trazabilidad.
+
+Resultado: se reducen `responsable_id` nulos por diseño y se hace predecible la asignación.
+
+### 2) Observabilidad funcional de automatizaciones
+
+Se incorpora la tabla `task_automation_events` para registrar eventos de ciclo de vida:
+
+- `empresa_created`
+- `template_evaluated`
+- `template_skipped_duplicate`
+- `task_created`
+- `task_creation_failed`
+- `task_completed`
+- `next_phase_skipped_duplicate`
+- `next_phase_created`
+
+Cada evento registra entidad, plantilla, tarea, estado (`info/success/warning/error`) y payload JSON.
+
+### 3) Idempotencia reforzada
+
+La creación automática por plantilla (`create_tasks_from_templates`) evita duplicados por combinación:
+
+- `entity_type`
+- `entity_id`
+- `template_id`
+
+Si detecta duplicado, no crea nueva tarea y registra `template_skipped_duplicate`.
+
+La cadena de fases (`create_next_empresa_chain_task`) mantiene el control de duplicidad y añade logging explícito de `next_phase_skipped_duplicate` o `next_phase_created`.
+
+### 4) Estándar de eventos de negocio para disparos
+
+Se formalizan eventos de disparo en el motor:
+
+- `empresa_created` (alta de empresa)
+- `task_completed` (cambio a `completed` en tareas de cadena)
+
+Estos eventos son trazables y auditables en `task_automation_events`.

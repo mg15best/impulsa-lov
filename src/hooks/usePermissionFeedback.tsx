@@ -1,4 +1,10 @@
 import { useUserRoles } from "./useUserRoles";
+import {
+  isActionAllowedByPolicy,
+  getPolicyRolesLabel,
+  type CrudAction,
+  type PolicyEntity,
+} from "@/config/permissionPolicy";
 
 /**
  * Hook centralizado para gestión de permisos con feedback de UI
@@ -12,8 +18,13 @@ export function usePermissionFeedback() {
    * @param action - El tipo de acción (crear, editar, eliminar)
    * @returns Mensaje descriptivo o null si tiene permisos
    */
-  const getPermissionMessage = (action: "create" | "edit" | "delete" = "create"): string | null => {
-    if (canWrite) {
+  const getPermissionMessage = (
+    action: CrudAction = "create",
+    entity: PolicyEntity = "generic"
+  ): string | null => {
+    const actionAllowed = isActionAllowedByPolicy(roles, action, entity);
+
+    if (actionAllowed) {
       return null; // Usuario tiene permisos, no mostrar mensaje
     }
 
@@ -37,7 +48,8 @@ export function usePermissionFeedback() {
       delete: "eliminar",
     };
 
-    return `No tienes permisos para ${actionLabels[action]}. Solo admin y técnico pueden realizar esta acción`;
+    const allowedRoles = getPolicyRolesLabel(action, entity);
+    return `No tienes permisos para ${actionLabels[action]}. Roles permitidos: ${allowedRoles}`;
   };
 
   /**
@@ -46,10 +58,11 @@ export function usePermissionFeedback() {
    * @param action - El tipo de acción (actualmente no utilizado, todas requieren canWrite)
    * @returns true si tiene permisos, false si no
    */
-  const canPerformAction = (_action: "create" | "edit" | "delete" = "create"): boolean => {
-    // En el futuro, esto podría diferenciar entre acciones
-    // Por ahora, todas las acciones requieren permisos de escritura
-    return canWrite;
+  const canPerformAction = (
+    action: CrudAction = "create",
+    entity: PolicyEntity = "generic"
+  ): boolean => {
+    return isActionAllowedByPolicy(roles, action, entity);
   };
 
   return {

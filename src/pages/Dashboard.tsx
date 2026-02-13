@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Building2, CheckSquare, Clock3, FileText, ListChecks, TrendingUp, Users } from "lucide-react";
 import { FemeteImpulsaBanner } from "@/components/FemeteImpulsaBanner";
 import { useKPICalculations } from "@/hooks/useKPICalculations";
+import { useOperationalHealthKPIs } from "@/hooks/useOperationalHealthKPIs";
 import type { Database } from "@/integrations/supabase/types";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
@@ -50,6 +51,7 @@ export default function Dashboard() {
     impactKpiValues, 
     isLoading: kpisLoading 
   } = useKPICalculations();
+  const { kpis: healthKpis } = useOperationalHealthKPIs();
 
   const [stats, setStats] = useState({
     totalEmpresas: 0,
@@ -360,6 +362,37 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* KPIs de Salud Lógica */}
+      <div>
+        <h2 className="mb-4 text-lg font-semibold">KPIs de salud lógica (consistencia)</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Indicadores de calidad operativa: integridad del flujo, automatización y coherencia entre entidades.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {healthKpis.map((kpi) => {
+            const Icon = kpi.icon;
+            return (
+              <Card key={kpi.id}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">{kpi.label}</CardTitle>
+                  <Icon className={`h-5 w-5 ${kpi.color}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {kpi.value.toFixed(2)} {kpi.unit}
+                  </div>
+                  {typeof kpi.numerator === "number" && typeof kpi.denominator === "number" && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {kpi.numerator} / {kpi.denominator}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {/* KPIs Estratégicos */}

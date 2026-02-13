@@ -260,7 +260,7 @@ Este documento define el modelo de dominio del sistema Impulsa LOV, una aplicaci
 **Campos principales**:
 - `id` (UUID): Identificador único
 - `user_id` (UUID): Usuario (FK a auth.users)
-- `role` (ENUM): Rol (admin, tecnico)
+- `role` (ENUM): Rol (admin, tecnico, auditor, it)
 
 **Metadatos**:
 - `created_at` (TIMESTAMP): Fecha de creación

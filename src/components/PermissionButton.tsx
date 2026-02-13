@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePermissionFeedback } from "@/hooks/usePermissionFeedback";
+import type { PolicyEntity } from "@/config/permissionPolicy";
 import type { ButtonProps } from "@/components/ui/button";
 
 interface PermissionButtonProps extends ButtonProps {
@@ -8,6 +9,10 @@ interface PermissionButtonProps extends ButtonProps {
    * Tipo de acción que requiere permisos
    */
   action?: "create" | "edit" | "delete";
+  /**
+   * Entidad de negocio para aplicar política específica por rol
+   */
+  entity?: PolicyEntity;
   /**
    * Condiciones adicionales que deben cumplirse (ej: empresas.length > 0)
    */
@@ -47,6 +52,7 @@ interface PermissionButtonProps extends ButtonProps {
  */
 export function PermissionButton({
   action = "create",
+  entity = "generic",
   additionalDisabled = false,
   additionalDisabledMessage,
   children,
@@ -55,8 +61,8 @@ export function PermissionButton({
 }: PermissionButtonProps) {
   const { canPerformAction, getPermissionMessage } = usePermissionFeedback();
 
-  const hasPermission = canPerformAction(action);
-  const permissionMessage = getPermissionMessage(action);
+  const hasPermission = canPerformAction(action, entity);
+  const permissionMessage = getPermissionMessage(action, entity);
   
   // El botón está deshabilitado si:
   // 1. No tiene permisos, O

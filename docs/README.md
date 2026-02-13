@@ -10,6 +10,11 @@ Este directorio contiene la documentación base del contrato funcional y arquite
 2. **[Flujos Base](FLUJOS_BASE.md)** - Prerequisitos y dependencias para crear cada entidad
 3. **[Definición de KPIs](DEFINICION_KPIS.md)** - Fuente de datos, criterio y fórmula de cada KPI
 4. **[Estados y Transiciones](ESTADOS_TRANSICIONES.md)** - Tabla de estados por entidad y transiciones válidas
+5. **[Matriz Canónica de Contrato](MATRIZ_CANONICA_CONTRATO.md)** - Fuente de verdad consolidada (estados, roles, KPIs)
+6. **[Fase 2 - Gobernanza Cross-Layer](FASE2_GOBERNANZA_CROSS_LAYER.md)** - Política única de permisos y enforcement UI/backend
+7. **[Fase 4 - Arquitectura Frontend por Dominio](FASE4_ARQUITECTURA_FRONTEND_DOMINIO.md)** - Modularización de vistas en capas de dominio
+8. **[Fase 5 - Coherencia de Navegación y Flujos](FASE5_COHERENCIA_NAVEGACION_FLUJOS.md)** - Journey E2E visible y menú orientado a pipeline
+9. **[Fase 6 - Métricas de Control y Calidad](FASE6_METRICAS_CONTROL_CALIDAD.md)** - KPIs de salud lógica e integridad operativa
 
 ---
 
@@ -29,7 +34,7 @@ Este directorio contiene la documentación base del contrato funcional y arquite
   
 - Entidades de soporte:
   - **Profile**: Perfiles de usuario
-  - **User Role**: Roles asignados a usuarios (admin, tecnico)
+  - **User Role**: Roles asignados a usuarios (admin, tecnico, auditor, it)
 
 ### Aspectos Clave
 - **Relaciones**: Todas las relaciones entre entidades están documentadas con cardinalidad
@@ -121,11 +126,11 @@ Documentación detallada de los flujos de creación para cada entidad:
 
 6. **Impactos de Difusión** (Meta: 15)
    - Fuente: tabla `evidencias` con relaciones a eventos/formaciones
-   - Criterio: tipo IN ('fotografia', 'video') relacionado con eventos/formaciones completados
+   - Criterio: tipo IN ('fotografia', 'video', 'otro') relacionado con eventos/formaciones completados
 
 7. **Material de Apoyo** (Meta: 5)
    - Fuente: tabla `evidencias`
-   - Criterio: tipo IN ('documento', 'certificado') AND formacion_id IS NOT NULL
+   - Criterio: tipo IN ('documento', 'certificado', 'informe') AND formacion_id IS NOT NULL
 
 8. **Cuadro de Mando PowerBI** (Meta: 1)
    - Fuente: Variables de entorno de configuración
@@ -164,23 +169,20 @@ Documentación detallada de los flujos de creación para cada entidad:
 
 1. **Empresa** (estado_empresa)
    - `pendiente` → `en_proceso` → `asesorada` → `completada`
-   - Reversiones permitidas
-   - Sin enforcement
+   - Ajuste acotado: `asesorada` → `en_proceso`
+   - Validación funcional en frontend (`src/lib/stateTransitions.ts`)
 
 2. **Asesoramiento** (estado_asesoramiento)
    - `programado` → `en_curso` → `completado`
    - Alternativa: `cancelado` (desde programado o en_curso)
-   - Reprogramación: cancelado → programado
 
 3. **Evento** (estado_evento)
    - `planificado` → `confirmado` → `en_curso` → `completado`
-   - Alternativa: `cancelado` (desde cualquier estado)
-   - Replanificación permitida
+   - Alternativa: `cancelado` (desde planificado o confirmado)
 
 4. **Formación** (estado_formacion)
    - `planificada` → `en_curso` → `completada`
    - Alternativa: `cancelada`
-   - Replanificación: cancelada → planificada
 
 5. **Colaborador** (estado_colaborador)
    - `pendiente` → `activo` ⇄ `inactivo`
@@ -190,10 +192,11 @@ Documentación detallada de los flujos de creación para cada entidad:
 - **Diagramas Mermaid**: Visualización de transiciones para cada entidad
 - **Tablas de Transiciones**: Estado actual → Estado siguiente con eventos disparadores
 - **Validaciones Recomendadas**: Condiciones sugeridas para cada transición
-- **Reglas de Negocio**: Guías de uso de estados sin enforcement técnico
+- **Reglas de Negocio**: Guías de uso y validación funcional de estados
 - **Campos Relacionados**: Campos que se actualizan con cambios de estado
 - **Flujo Típico del Sistema**: Diagrama completo del flujo de trabajo
-- **Sin Bloqueos**: Todas las transiciones son manuales, sin restricciones técnicas
+  - **Validación funcional**: Las transiciones se validan en frontend (`src/lib/stateTransitions.ts`)
+  - **Backend flexible**: No hay enforcement de transiciones en RLS/backend
 
 ---
 
@@ -214,9 +217,8 @@ Documentación detallada de los flujos de creación para cada entidad:
 
 ### Alcance
 Esta documentación **NO incluye**:
-- ❌ Implementación de cambios de lógica
+- ❌ Implementación de cambios de lógica en backend
 - ❌ Modificaciones de UI
-- ❌ Enforcement de transiciones de estado
 - ❌ Nuevas funcionalidades
 
 Esta documentación **SÍ incluye**:
@@ -224,7 +226,7 @@ Esta documentación **SÍ incluye**:
 - ✅ Definición de entidades y relaciones
 - ✅ Flujos de creación y validaciones
 - ✅ Definición completa de KPIs con fórmulas
-- ✅ Estados y transiciones (documentación sin enforcement)
+- ✅ Estados y transiciones (documentación + validación funcional en frontend)
 - ✅ Reglas de negocio recomendadas
 - ✅ Ejemplos de código y queries SQL
 

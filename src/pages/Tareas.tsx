@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,78 +9,21 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { useUserRoles } from "@/hooks/useUserRoles";
-import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, CheckSquare, Filter, Loader2, Edit, Trash2 } from "lucide-react";
-import type { Database } from "@/integrations/supabase/types";
 import { format } from "date-fns";
-
-type Task = Database["public"]["Tables"]["tasks"]["Row"];
-type TaskStatus = Database["public"]["Enums"]["task_status"];
-type TaskPriority = Database["public"]["Enums"]["task_priority"];
-type TaskEntityType = Database["public"]["Enums"]["task_entity_type"];
-type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
-
-const initialFormData = {
-  titulo: "",
-  descripcion: "",
-  entity_type: "general" as TaskEntityType,
-  entity_id: "",
-  estado: "pending" as TaskStatus,
-  prioridad: "medium" as TaskPriority,
-  fecha_vencimiento: "",
-  fecha_inicio: "",
-  responsable_id: "",
-  source: "manual",
-  observaciones: "",
-};
-
-const estadoLabels: Record<TaskStatus, string> = {
-  pending: "Pendiente",
-  in_progress: "En progreso",
-  completed: "Completada",
-  cancelled: "Cancelada",
-  on_hold: "En espera",
-};
-
-const estadoColors: Record<TaskStatus, string> = {
-  pending: "bg-info/10 text-info",
-  in_progress: "bg-warning/10 text-warning",
-  completed: "bg-success/10 text-success",
-  cancelled: "bg-destructive/10 text-destructive",
-  on_hold: "bg-muted text-muted-foreground",
-};
-
-const prioridadLabels: Record<TaskPriority, string> = {
-  low: "Baja",
-  medium: "Media",
-  high: "Alta",
-  urgent: "Urgente",
-};
-
-const prioridadColors: Record<TaskPriority, string> = {
-  low: "bg-muted text-muted-foreground",
-  medium: "bg-info/10 text-info",
-  high: "bg-warning/10 text-warning",
-  urgent: "bg-destructive/10 text-destructive",
-};
-
-const entityTypeLabels: Record<TaskEntityType, string> = {
-  general: "General",
-  empresa: "Empresa",
-  asesoramiento: "Asesoramiento",
-  evento: "Evento",
-  formacion: "Formación",
-  colaborador: "Colaborador",
-  material: "Material",
-  dissemination_impact: "Impacto Difusión",
-  opportunity: "Oportunidad",
-  grant: "Subvención",
-  action_plan: "Plan de Acción",
-  report: "Informe",
-};
+import {
+  initialTaskFormData,
+  taskEntityTypeLabels,
+  taskPriorityColors,
+  taskPriorityLabels,
+  taskStatusColors,
+  taskStatusLabels,
+} from "@/domains/tasks/constants";
+import type { Task, TaskEntityType, TaskPriority, TaskStatus } from "@/domains/tasks/types";
+import { buildTaskPayload, createTask, deleteTask, taskToFormData, updateTask } from "@/domains/tasks/taskService";
+import { useTasksPageData } from "@/domains/tasks/useTasksPageData";
+import { TaskSourceBadge } from "@/domains/tasks/components/TaskSourceBadge";
 
 export default function Tareas() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -92,46 +34,14 @@ export default function Tareas() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
-  const { canWrite, isAdmin } = useUserRoles();
-
-  // Use the consolidated data loader hook
-  const { data: tasks, loading, reload } = useDataLoader<Task>(
-    "tasks",
-    (query) => {
-      let filteredQuery = query.order("created_at", { ascending: false });
-      
-      if (filterEstado && filterEstado !== "all") {
-        filteredQuery = filteredQuery.eq("estado", filterEstado as TaskStatus);
-      }
-      if (filterPrioridad && filterPrioridad !== "all") {
-        filteredQuery = filteredQuery.eq("prioridad", filterPrioridad as TaskPriority);
-      }
-      if (filterEntityType && filterEntityType !== "all") {
-        filteredQuery = filteredQuery.eq("entity_type", filterEntityType as TaskEntityType);
-      }
-      
-      return filteredQuery;
-    },
-    [filterEstado, filterPrioridad, filterEntityType]
-  );
-
-  // Load companies for entity selection
-  const { data: empresas } = useDataLoader<Empresa>("empresas", (query) =>
-    query.select("id, nombre").order("nombre")
-  );
-
-  // Use local search hook for filtering
-  const filteredTasks = useLocalSearch(
-    tasks,
+    const { tasks: filteredTasks, tasksLoading: loading, reloadTasks: reload, empresas } = useTasksPageData({
+    filterEstado,
+    filterPrioridad,
+    filterEntityType,
     searchTerm,
-    (task, term) =>
-      task.titulo.toLowerCase().includes(term) ||
-      task.descripcion?.toLowerCase().includes(term) ||
-      task.observaciones?.toLowerCase().includes(term)
-  );
+  });
 
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState(initialTaskFormData);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -149,38 +59,17 @@ export default function Tareas() {
 
     setSaving(true);
     try {
-      const dataToSave = {
-        titulo: formData.titulo,
-        descripcion: formData.descripcion || null,
-        entity_type: formData.entity_type,
-        entity_id: formData.entity_id || null,
-        estado: formData.estado,
-        prioridad: formData.prioridad,
-        fecha_vencimiento: formData.fecha_vencimiento || null,
-        fecha_inicio: formData.fecha_inicio || null,
-        responsable_id: formData.responsable_id || null,
-        source: formData.source || 'manual',
-        observaciones: formData.observaciones || null,
-      };
+      const payload = buildTaskPayload(formData);
 
       if (selectedTask) {
-        // Update existing task
-        const { error } = await supabase
-          .from("tasks")
-          .update(dataToSave)
-          .eq("id", selectedTask.id);
-
-        if (error) throw error;
+        await updateTask(selectedTask.id, payload);
 
         toast({
           title: "Éxito",
           description: "Tarea actualizada correctamente",
         });
       } else {
-        // Create new task
-        const { error } = await supabase.from("tasks").insert([dataToSave]);
-
-        if (error) throw error;
+        await createTask(payload);
 
         toast({
           title: "Éxito",
@@ -190,7 +79,7 @@ export default function Tareas() {
 
       setDialogOpen(false);
       setSelectedTask(null);
-      setFormData(initialFormData);
+      setFormData(initialTaskFormData);
       reload();
     } catch (error) {
       console.error("Error saving task:", error);
@@ -206,19 +95,7 @@ export default function Tareas() {
 
   const handleEdit = (task: Task) => {
     setSelectedTask(task);
-    setFormData({
-      titulo: task.titulo,
-      descripcion: task.descripcion || "",
-      entity_type: task.entity_type,
-      entity_id: task.entity_id || "",
-      estado: task.estado,
-      prioridad: task.prioridad,
-      fecha_vencimiento: task.fecha_vencimiento || "",
-      fecha_inicio: task.fecha_inicio || "",
-      responsable_id: task.responsable_id || "",
-      source: task.source || "manual",
-      observaciones: task.observaciones || "",
-    });
+    setFormData(taskToFormData(task));
     setDialogOpen(true);
   };
 
@@ -228,9 +105,7 @@ export default function Tareas() {
     }
 
     try {
-      const { error } = await supabase.from("tasks").delete().eq("id", id);
-
-      if (error) throw error;
+      await deleteTask(id);
 
       toast({
         title: "Éxito",
@@ -249,7 +124,7 @@ export default function Tareas() {
 
   const handleNewTask = () => {
     setSelectedTask(null);
-    setFormData(initialFormData);
+    setFormData(initialTaskFormData);
     setDialogOpen(true);
   };
 
@@ -267,12 +142,10 @@ export default function Tareas() {
                 Administra tareas y asignaciones del sistema
               </CardDescription>
             </div>
-            <PermissionButton
-              canWrite={canWrite}
-              onClick={handleNewTask}
-              icon={<Plus className="h-4 w-4" />}
-              label="Nueva tarea"
-            />
+            <PermissionButton action="create" entity="tasks" onClick={handleNewTask}>
+              <Plus className="h-4 w-4" />
+              Nueva tarea
+            </PermissionButton>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -294,7 +167,7 @@ export default function Tareas() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los estados</SelectItem>
-                {Object.entries(estadoLabels).map(([value, label]) => (
+                {Object.entries(taskStatusLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
                     {label}
                   </SelectItem>
@@ -308,7 +181,7 @@ export default function Tareas() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las prioridades</SelectItem>
-                {Object.entries(prioridadLabels).map(([value, label]) => (
+                {Object.entries(taskPriorityLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
                     {label}
                   </SelectItem>
@@ -322,7 +195,7 @@ export default function Tareas() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las entidades</SelectItem>
-                {Object.entries(entityTypeLabels).map(([value, label]) => (
+                {Object.entries(taskEntityTypeLabels).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
                     {label}
                   </SelectItem>
@@ -350,6 +223,7 @@ export default function Tareas() {
                     <TableHead>Estado</TableHead>
                     <TableHead>Prioridad</TableHead>
                     <TableHead>Tipo entidad</TableHead>
+                    <TableHead>Origen</TableHead>
                     <TableHead>Vencimiento</TableHead>
                     <TableHead>Creada</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
@@ -369,19 +243,22 @@ export default function Tareas() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={estadoColors[task.estado]}>
-                          {estadoLabels[task.estado]}
+                        <Badge className={taskStatusColors[task.estado]}>
+                          {taskStatusLabels[task.estado]}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={prioridadColors[task.prioridad]}>
-                          {prioridadLabels[task.prioridad]}
+                        <Badge className={taskPriorityColors[task.prioridad]}>
+                          {taskPriorityLabels[task.prioridad]}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm text-muted-foreground">
-                          {entityTypeLabels[task.entity_type]}
+                          {taskEntityTypeLabels[task.entity_type]}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <TaskSourceBadge source={task.source} />
                       </TableCell>
                       <TableCell>
                         {task.fecha_vencimiento ? (
@@ -400,20 +277,24 @@ export default function Tareas() {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <PermissionButton
-                            canWrite={canWrite}
+                            action="edit"
+                            entity="tasks"
                             onClick={() => handleEdit(task)}
-                            icon={<Edit className="h-4 w-4" />}
                             variant="ghost"
                             size="sm"
-                          />
+                          >
+                            <Edit className="h-4 w-4" />
+                          </PermissionButton>
                           <PermissionButton
-                            canWrite={isAdmin}
+                            action="delete"
+                            entity="tasks"
                             onClick={() => handleDelete(task.id)}
-                            icon={<Trash2 className="h-4 w-4" />}
                             variant="ghost"
                             size="sm"
                             className="text-destructive hover:text-destructive"
-                          />
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </PermissionButton>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -477,7 +358,7 @@ export default function Tareas() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(estadoLabels).map(([value, label]) => (
+                    {Object.entries(taskStatusLabels).map(([value, label]) => (
                       <SelectItem key={value} value={value}>
                         {label}
                       </SelectItem>
@@ -497,7 +378,7 @@ export default function Tareas() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(prioridadLabels).map(([value, label]) => (
+                    {Object.entries(taskPriorityLabels).map(([value, label]) => (
                       <SelectItem key={value} value={value}>
                         {label}
                       </SelectItem>
@@ -519,7 +400,7 @@ export default function Tareas() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(entityTypeLabels).map(([value, label]) => (
+                    {Object.entries(taskEntityTypeLabels).map(([value, label]) => (
                       <SelectItem key={value} value={value}>
                         {label}
                       </SelectItem>
@@ -595,7 +476,7 @@ export default function Tareas() {
               onClick={() => {
                 setDialogOpen(false);
                 setSelectedTask(null);
-                setFormData(initialFormData);
+                setFormData(initialTaskFormData);
               }}
             >
               Cancelar

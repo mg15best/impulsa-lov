@@ -42,18 +42,20 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
 
-const mainNavItems = [
+const overviewNavItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Empresas", url: "/empresas", icon: Building2 },
-  { title: "Contactos", url: "/contactos", icon: Users },
-  { title: "Oportunidades", url: "/oportunidades", icon: Target },
-  { title: "Subvenciones", url: "/grants", icon: Gift },
-  { title: "Asesoramientos", url: "/asesoramientos", icon: ClipboardList },
-  { title: "Planes de Acción", url: "/planes-accion", icon: ListChecks },
-  { title: "Informes", url: "/informes", icon: ClipboardCheck },
-  { title: "Tareas", url: "/tareas", icon: CheckSquare },
+];
+
+const pipelineNavItems = [
+  { title: "1. Empresas", url: "/empresas", icon: Building2 },
+  { title: "1.1 Contactos", url: "/contactos", icon: Users },
+  { title: "1.2 Oportunidades", url: "/oportunidades", icon: Target },
+  { title: "1.3 Subvenciones", url: "/grants", icon: Gift },
+  { title: "2. Asesoramientos", url: "/asesoramientos", icon: ClipboardList },
+  { title: "3. Informes", url: "/informes", icon: ClipboardCheck },
+  { title: "3.1 Planes de Acción", url: "/planes-accion", icon: ListChecks },
+  { title: "4. Tareas", url: "/tareas", icon: CheckSquare },
 ];
 
 const activityNavItems = [
@@ -77,7 +79,6 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
 
   const isActive = (path: string) => location.pathname === path;
-  const isMainExpanded = mainNavItems.some((i) => isActive(i.url));
   const isActivityExpanded = activityNavItems.some((i) => isActive(i.url));
 
   const handleLogout = async () => {
@@ -106,11 +107,35 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/50">
-            Principal
+            Resumen
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNavItems.map((item) => (
+              {overviewNavItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    tooltip={item.title}
+                  >
+                    <NavLink to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-sidebar-foreground/50">
+            Pipeline Operativo
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {pipelineNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
