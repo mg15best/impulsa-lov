@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FlowJourneyBar } from "./FlowJourneyBar";
 
 export function AppLayout() {
   const { user, loading } = useAuth();
@@ -30,8 +31,11 @@ export function AppLayout() {
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <SidebarInset className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <SidebarTrigger className="-ml-1" />
+          <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex h-14 items-center gap-4 px-4">
+              <SidebarTrigger className="-ml-1" />
+            </div>
+            <FlowJourneyBar />
           </header>
           <main className="flex-1 overflow-auto p-6">
             <Outlet />

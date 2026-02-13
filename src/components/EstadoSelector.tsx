@@ -8,6 +8,8 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { canTransition, getValidNextStates, getTransitionErrorMessage } from "@/lib/stateTransitions";
 
 interface EstadoSelectorProps<T extends string> {
@@ -52,6 +54,27 @@ export function EstadoSelector<T extends string>({
   className = "",
 }: EstadoSelectorProps<T>) {
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  const trackTransitionAttempt = async (newEstado: string, isValid: boolean, reason?: string) => {
+    if (!supabase || !currentEstado) return;
+
+    try {
+      const client = supabase as unknown as {
+        from: (table: string) => { insert: (payload: unknown) => Promise<unknown> }
+      };
+      await client.from("state_transition_attempts").insert({
+        entity_type: entityType,
+        current_state: currentEstado,
+        attempted_state: newEstado,
+        is_valid: isValid,
+        reason: reason || null,
+        created_by: user?.id || null,
+      });
+    } catch {
+      // non-blocking telemetry
+    }
+  };
 
   // Get valid states for the dropdown
   const getAvailableStates = (): T[] => {
@@ -67,7 +90,7 @@ export function EstadoSelector<T extends string>({
     ) as T[];
   };
 
-  const handleEstadoChange = (newEstado: string) => {
+  const handleEstadoChange = async (newEstado: string) => {
     const typedNewEstado = newEstado as T;
 
     // If we have a current estado (edit mode), validate the transition
@@ -76,6 +99,7 @@ export function EstadoSelector<T extends string>({
       
       if (!isValid) {
         const errorMessage = getTransitionErrorMessage(entityType, currentEstado, typedNewEstado);
+        await trackTransitionAttempt(typedNewEstado, false, errorMessage);
         toast({
           title: "Transición de estado no válida",
           description: errorMessage,
@@ -83,6 +107,10 @@ export function EstadoSelector<T extends string>({
         });
         return;
       }
+    }
+
+    if (currentEstado && currentEstado !== typedNewEstado) {
+      await trackTransitionAttempt(typedNewEstado, true);
     }
 
     onChange(typedNewEstado);
