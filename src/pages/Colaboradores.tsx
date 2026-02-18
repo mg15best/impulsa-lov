@@ -18,6 +18,8 @@ import { PermissionButton } from "@/components/PermissionButton";
 import { EstadoSelector } from "@/components/EstadoSelector";
 import { Plus, Search, Handshake, Filter, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { normalizeOptionalDate, normalizeOptionalString } from "@/lib/payloadUtils";
+import { safeInsertWithSchemaFallback } from "@/lib/supabaseInsert";
 
 type Colaborador = Database["public"]["Tables"]["colaboradores"]["Row"];
 type TipoColaborador = Database["public"]["Enums"]["tipo_colaborador"];
@@ -112,13 +114,49 @@ export default function Colaboradores() {
     if (!user || !supabase) return;
 
     setSaving(true);
-    const { error } = await supabase.from("colaboradores").insert({
+    const payload: Database["public"]["Tables"]["colaboradores"]["Insert"] = {
       ...formData,
+      cif: normalizeOptionalString(formData.cif),
+      descripcion: normalizeOptionalString(formData.descripcion),
+      direccion: normalizeOptionalString(formData.direccion),
+      telefono: normalizeOptionalString(formData.telefono),
+      email: normalizeOptionalString(formData.email),
+      web: normalizeOptionalString(formData.web),
+      contacto_principal: normalizeOptionalString(formData.contacto_principal),
+      cargo_contacto: normalizeOptionalString(formData.cargo_contacto),
+      email_contacto: normalizeOptionalString(formData.email_contacto),
+      telefono_contacto: normalizeOptionalString(formData.telefono_contacto),
+      fecha_inicio_colaboracion: normalizeOptionalDate(formData.fecha_inicio_colaboracion),
+      ambito_colaboracion: normalizeOptionalString(formData.ambito_colaboracion),
+      observaciones: normalizeOptionalString(formData.observaciones),
+      codigo_alcance: normalizeOptionalString(formData.codigo_alcance),
+      codigo_rango_ticket: normalizeOptionalString(formData.codigo_rango_ticket),
+      requisitos_habituales: normalizeOptionalString(formData.requisitos_habituales),
       created_by: user.id,
+    };
+
+    const { error, removedColumns } = await safeInsertWithSchemaFallback({
+      tableName: "colaboradores",
+      payload,
+      insertFn: async (currentPayload) => {
+        const { error: insertError } = await supabase
+          .from("colaboradores")
+          .insert(currentPayload as Database["public"]["Tables"]["colaboradores"]["Insert"]);
+
+        return { data: { success: true }, error: insertError };
+      },
     });
 
     if (error) {
-      toast({ title: "Error al crear colaborador", description: error.message, variant: "destructive" });
+      const details = removedColumns.length > 0
+        ? `Se omitieron campos no disponibles temporalmente: ${removedColumns.join(", ")}.`
+        : "";
+
+      toast({
+        title: "Error al crear colaborador",
+        description: `${error.message} ${details}`.trim(),
+        variant: "destructive",
+      });
     } else {
       toast({ title: "Colaborador creado", description: "El colaborador se ha registrado correctamente." });
       setDialogOpen(false);

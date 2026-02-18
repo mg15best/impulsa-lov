@@ -18,6 +18,8 @@ import { CatalogSelect } from "@/components/CatalogSelect";
 import { Plus, Search, Building2, Filter, Loader2, Users, ClipboardList, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
+import { normalizeOptionalDate, normalizeOptionalString } from "@/lib/payloadUtils";
+import { safeInsertWithSchemaFallback } from "@/lib/supabaseInsert";
 
 type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
 type SectorEmpresa = Database["public"]["Enums"]["sector_empresa"];
@@ -268,70 +270,55 @@ export default function Empresas() {
       ...companyData
     } = formData;
     
-    const normalizeOptional = (value: string) => {
-      const trimmedValue = value.trim();
-      return trimmedValue.length > 0 ? trimmedValue : null;
-    };
-
     const companyPayload: Database["public"]["Tables"]["empresas"]["Insert"] = {
       ...companyData,
-      nombre_comercial: normalizeOptional(companyData.nombre_comercial),
-      cif: normalizeOptional(companyData.cif),
-      forma_juridica: normalizeOptional(companyData.forma_juridica),
-      subsector: normalizeOptional(companyData.subsector),
-      descripcion: normalizeOptional(companyData.descripcion),
-      direccion: normalizeOptional(companyData.direccion),
-      codigo_postal: normalizeOptional(companyData.codigo_postal),
-      municipio: normalizeOptional(companyData.municipio),
-      isla: normalizeOptional(companyData.isla),
-      telefono: normalizeOptional(companyData.telefono),
-      email: normalizeOptional(companyData.email),
-      web: normalizeOptional(companyData.web),
-      contacto_principal: normalizeOptional(companyData.contacto_principal),
-      fecha_constitucion: normalizeOptional(companyData.fecha_constitucion),
-      codigo_estado_pipeline: normalizeOptional(companyData.codigo_estado_pipeline),
-      codigo_origen_lead: normalizeOptional(companyData.codigo_origen_lead),
-      url_formulario_diagnostico: normalizeOptional(companyData.url_formulario_diagnostico),
-      fecha_recepcion_diagnostico: normalizeOptional(companyData.fecha_recepcion_diagnostico),
-      resumen_diagnostico: normalizeOptional(companyData.resumen_diagnostico),
-      fecha_inicio: normalizeOptional(companyData.fecha_inicio),
-      fecha_finalizacion: normalizeOptional(companyData.fecha_finalizacion),
-      codigo_motivo_cierre: normalizeOptional(companyData.codigo_motivo_cierre),
+      nombre_comercial: normalizeOptionalString(companyData.nombre_comercial),
+      cif: normalizeOptionalString(companyData.cif),
+      forma_juridica: normalizeOptionalString(companyData.forma_juridica),
+      subsector: normalizeOptionalString(companyData.subsector),
+      descripcion: normalizeOptionalString(companyData.descripcion),
+      direccion: normalizeOptionalString(companyData.direccion),
+      codigo_postal: normalizeOptionalString(companyData.codigo_postal),
+      municipio: normalizeOptionalString(companyData.municipio),
+      isla: normalizeOptionalString(companyData.isla),
+      telefono: normalizeOptionalString(companyData.telefono),
+      email: normalizeOptionalString(companyData.email),
+      web: normalizeOptionalString(companyData.web),
+      contacto_principal: normalizeOptionalString(companyData.contacto_principal),
+      fecha_constitucion: normalizeOptionalDate(companyData.fecha_constitucion),
+      codigo_estado_pipeline: normalizeOptionalString(companyData.codigo_estado_pipeline),
+      codigo_origen_lead: normalizeOptionalString(companyData.codigo_origen_lead),
+      url_formulario_diagnostico: normalizeOptionalString(companyData.url_formulario_diagnostico),
+      fecha_recepcion_diagnostico: normalizeOptionalDate(companyData.fecha_recepcion_diagnostico),
+      resumen_diagnostico: normalizeOptionalString(companyData.resumen_diagnostico),
+      fecha_inicio: normalizeOptionalDate(companyData.fecha_inicio),
+      fecha_finalizacion: normalizeOptionalDate(companyData.fecha_finalizacion),
+      codigo_motivo_cierre: normalizeOptionalString(companyData.codigo_motivo_cierre),
       created_by: user.id,
     };
 
-    const payloadWithFallback = { ...companyPayload };
-    const missingColumnRegex = /Could not find the '([^']+)' column of 'empresas'/i;
-    let newCompany: Empresa | null = null;
-    let companyError: { message: string } | null = null;
+    const { data: newCompany, error: companyError, removedColumns } = await safeInsertWithSchemaFallback({
+      tableName: "empresas",
+      payload: companyPayload,
+      insertFn: async (payload) => {
+        const { data, error } = await supabase
+          .from("empresas")
+          .insert(payload as Database["public"]["Tables"]["empresas"]["Insert"])
+          .select()
+          .single();
 
-    for (let attempt = 0; attempt < 5; attempt += 1) {
-      const { data, error } = await supabase
-        .from("empresas")
-        .insert(payloadWithFallback)
-        .select()
-        .single();
-
-      if (!error) {
-        newCompany = data;
-        companyError = null;
-        break;
-      }
-
-      const missingColumn = error.message.match(missingColumnRegex)?.[1];
-      if (missingColumn && missingColumn in payloadWithFallback) {
-        delete payloadWithFallback[missingColumn as keyof typeof payloadWithFallback];
-        continue;
-      }
-
-      companyError = { message: error.message };
-      break;
-    }
+        return { data: data as Empresa | null, error };
+      },
+    });
 
     if (companyError || !newCompany) {
+      const details = removedColumns.length > 0
+        ? `Se omitieron campos no disponibles temporalmente: ${removedColumns.join(", ")}.`
+        : "";
+
       toast({
         title: "Error al crear empresa",
-        description: companyError?.message ?? "No se pudo crear la empresa tras varios intentos.",
+        description: `${companyError?.message ?? "No se pudo crear la empresa tras varios intentos."} ${details}`.trim(),
         variant: "destructive",
       });
       setSaving(false);

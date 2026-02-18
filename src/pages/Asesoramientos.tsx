@@ -21,6 +21,8 @@ import { es } from "date-fns/locale";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { useCatalogLookup, resolveLabelFromLookup } from "@/hooks/useCatalog";
+import { normalizeOptionalString } from "@/lib/payloadUtils";
+import { safeInsertWithSchemaFallback } from "@/lib/supabaseInsert";
 
 type Asesoramiento = Database["public"]["Tables"]["asesoramientos"]["Row"];
 type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
@@ -96,19 +98,39 @@ export default function Asesoramientos() {
     if (!user || !supabase) return;
 
     setSaving(true);
-    const { error } = await supabase.from("asesoramientos").insert({
+    const payload: Database["public"]["Tables"]["asesoramientos"]["Insert"] = {
       empresa_id: formData.empresa_id,
       tecnico_id: user.id,
       fecha: formData.fecha,
-      hora_inicio: formData.hora_inicio || null,
+      hora_inicio: normalizeOptionalString(formData.hora_inicio),
       duracion_minutos: formData.duracion_minutos,
-      tema: formData.tema,
+      tema: normalizeOptionalString(formData.tema),
       estado: formData.estado,
       created_by: user.id,
+    };
+
+    const { error, removedColumns } = await safeInsertWithSchemaFallback({
+      tableName: "asesoramientos",
+      payload,
+      insertFn: async (currentPayload) => {
+        const { error: insertError } = await supabase
+          .from("asesoramientos")
+          .insert(currentPayload as Database["public"]["Tables"]["asesoramientos"]["Insert"]);
+
+        return { data: { success: true }, error: insertError };
+      },
     });
 
     if (error) {
-      toast({ title: "Error al crear asesoramiento", description: error.message, variant: "destructive" });
+      const details = removedColumns.length > 0
+        ? `Se omitieron campos no disponibles temporalmente: ${removedColumns.join(", ")}.`
+        : "";
+
+      toast({
+        title: "Error al crear asesoramiento",
+        description: `${error.message} ${details}`.trim(),
+        variant: "destructive",
+      });
     } else {
       toast({ title: "Asesoramiento creado", description: "El asesoramiento se ha programado correctamente." });
       setDialogOpen(false);
