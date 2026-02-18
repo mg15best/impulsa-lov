@@ -273,40 +273,67 @@ export default function Empresas() {
       return trimmedValue.length > 0 ? trimmedValue : null;
     };
 
-    // Insert company
-    const { data: newCompany, error: companyError } = await supabase
-      .from("empresas")
-      .insert({
-        ...companyData,
-        nombre_comercial: normalizeOptional(companyData.nombre_comercial),
-        cif: normalizeOptional(companyData.cif),
-        forma_juridica: normalizeOptional(companyData.forma_juridica),
-        subsector: normalizeOptional(companyData.subsector),
-        descripcion: normalizeOptional(companyData.descripcion),
-        direccion: normalizeOptional(companyData.direccion),
-        codigo_postal: normalizeOptional(companyData.codigo_postal),
-        municipio: normalizeOptional(companyData.municipio),
-        isla: normalizeOptional(companyData.isla),
-        telefono: normalizeOptional(companyData.telefono),
-        email: normalizeOptional(companyData.email),
-        web: normalizeOptional(companyData.web),
-        contacto_principal: normalizeOptional(companyData.contacto_principal),
-        fecha_constitucion: normalizeOptional(companyData.fecha_constitucion),
-        codigo_estado_pipeline: normalizeOptional(companyData.codigo_estado_pipeline),
-        codigo_origen_lead: normalizeOptional(companyData.codigo_origen_lead),
-        url_formulario_diagnostico: normalizeOptional(companyData.url_formulario_diagnostico),
-        fecha_recepcion_diagnostico: normalizeOptional(companyData.fecha_recepcion_diagnostico),
-        resumen_diagnostico: normalizeOptional(companyData.resumen_diagnostico),
-        fecha_inicio: normalizeOptional(companyData.fecha_inicio),
-        fecha_finalizacion: normalizeOptional(companyData.fecha_finalizacion),
-        codigo_motivo_cierre: normalizeOptional(companyData.codigo_motivo_cierre),
-        created_by: user.id,
-      })
-      .select()
-      .single();
+    const companyPayload: Database["public"]["Tables"]["empresas"]["Insert"] = {
+      ...companyData,
+      nombre_comercial: normalizeOptional(companyData.nombre_comercial),
+      cif: normalizeOptional(companyData.cif),
+      forma_juridica: normalizeOptional(companyData.forma_juridica),
+      subsector: normalizeOptional(companyData.subsector),
+      descripcion: normalizeOptional(companyData.descripcion),
+      direccion: normalizeOptional(companyData.direccion),
+      codigo_postal: normalizeOptional(companyData.codigo_postal),
+      municipio: normalizeOptional(companyData.municipio),
+      isla: normalizeOptional(companyData.isla),
+      telefono: normalizeOptional(companyData.telefono),
+      email: normalizeOptional(companyData.email),
+      web: normalizeOptional(companyData.web),
+      contacto_principal: normalizeOptional(companyData.contacto_principal),
+      fecha_constitucion: normalizeOptional(companyData.fecha_constitucion),
+      codigo_estado_pipeline: normalizeOptional(companyData.codigo_estado_pipeline),
+      codigo_origen_lead: normalizeOptional(companyData.codigo_origen_lead),
+      url_formulario_diagnostico: normalizeOptional(companyData.url_formulario_diagnostico),
+      fecha_recepcion_diagnostico: normalizeOptional(companyData.fecha_recepcion_diagnostico),
+      resumen_diagnostico: normalizeOptional(companyData.resumen_diagnostico),
+      fecha_inicio: normalizeOptional(companyData.fecha_inicio),
+      fecha_finalizacion: normalizeOptional(companyData.fecha_finalizacion),
+      codigo_motivo_cierre: normalizeOptional(companyData.codigo_motivo_cierre),
+      created_by: user.id,
+    };
 
-    if (companyError) {
-      toast({ title: "Error al crear empresa", description: companyError.message, variant: "destructive" });
+    const payloadWithFallback = { ...companyPayload };
+    const missingColumnRegex = /Could not find the '([^']+)' column of 'empresas'/i;
+    let newCompany: Empresa | null = null;
+    let companyError: { message: string } | null = null;
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const { data, error } = await supabase
+        .from("empresas")
+        .insert(payloadWithFallback)
+        .select()
+        .single();
+
+      if (!error) {
+        newCompany = data;
+        companyError = null;
+        break;
+      }
+
+      const missingColumn = error.message.match(missingColumnRegex)?.[1];
+      if (missingColumn && missingColumn in payloadWithFallback) {
+        delete payloadWithFallback[missingColumn as keyof typeof payloadWithFallback];
+        continue;
+      }
+
+      companyError = { message: error.message };
+      break;
+    }
+
+    if (companyError || !newCompany) {
+      toast({
+        title: "Error al crear empresa",
+        description: companyError?.message ?? "No se pudo crear la empresa tras varios intentos.",
+        variant: "destructive",
+      });
       setSaving(false);
       return;
     }
