@@ -18,6 +18,8 @@ import { EstadoSelector } from "@/components/EstadoSelector";
 import { TrainingAttendanceManager } from "@/components/TrainingAttendanceManager";
 import { Plus, Search, GraduationCap, Filter, Loader2, ArrowLeft } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { normalizeOptionalDate, normalizeOptionalString } from "@/lib/payloadUtils";
+import { safeInsertWithSchemaFallback } from "@/lib/supabaseInsert";
 
 type Formacion = Database["public"]["Tables"]["formaciones"]["Row"];
 type TipoFormacion = Database["public"]["Enums"]["tipo_formacion"];
@@ -109,13 +111,46 @@ export default function Formaciones() {
     if (!user || !supabase) return;
 
     setSaving(true);
-    const { error } = await supabase.from("formaciones").insert({
+    const payload: Database["public"]["Tables"]["formaciones"]["Insert"] = {
       ...formData,
+      fecha_inicio: normalizeOptionalDate(formData.fecha_inicio),
+      fecha_fin: normalizeOptionalDate(formData.fecha_fin),
+      hora_inicio: normalizeOptionalString(formData.hora_inicio),
+      hora_fin: normalizeOptionalString(formData.hora_fin),
+      formador: normalizeOptionalString(formData.formador),
+      descripcion: normalizeOptionalString(formData.descripcion),
+      objetivos: normalizeOptionalString(formData.objetivos),
+      tema: normalizeOptionalString(formData.tema),
+      modalidad: normalizeOptionalString(formData.modalidad),
+      ubicacion: normalizeOptionalString(formData.ubicacion),
+      materiales: normalizeOptionalString(formData.materiales),
+      notas_evidencia: normalizeOptionalString(formData.notas_evidencia),
+      observaciones: normalizeOptionalString(formData.observaciones),
       created_by: user.id,
+    };
+
+    const { error, removedColumns } = await safeInsertWithSchemaFallback({
+      tableName: "formaciones",
+      payload,
+      insertFn: async (currentPayload) => {
+        const { error: insertError } = await supabase
+          .from("formaciones")
+          .insert(currentPayload as Database["public"]["Tables"]["formaciones"]["Insert"]);
+
+        return { data: { success: true }, error: insertError };
+      },
     });
 
     if (error) {
-      toast({ title: "Error al crear formación", description: error.message, variant: "destructive" });
+      const details = removedColumns.length > 0
+        ? `Se omitieron campos no disponibles temporalmente: ${removedColumns.join(", ")}.`
+        : "";
+
+      toast({
+        title: "Error al crear formación",
+        description: `${error.message} ${details}`.trim(),
+        variant: "destructive",
+      });
     } else {
       toast({ title: "Formación creada", description: "La formación se ha registrado correctamente." });
       setDialogOpen(false);

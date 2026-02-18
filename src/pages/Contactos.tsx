@@ -18,6 +18,8 @@ import { PermissionButton } from "@/components/PermissionButton";
 import { Plus, Search, Users, Loader2, Building2 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
+import { normalizeOptionalString } from "@/lib/payloadUtils";
+import { safeInsertWithSchemaFallback } from "@/lib/supabaseInsert";
 
 type Contacto = Database["public"]["Tables"]["contactos"]["Row"];
 type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
@@ -84,19 +86,39 @@ export default function Contactos() {
     if (!user || !supabase) return;
 
     setSaving(true);
-    const { error } = await supabase.from("contactos").insert({
+    const payload: Database["public"]["Tables"]["contactos"]["Insert"] = {
       nombre: formData.nombre,
-      cargo: formData.cargo || null,
-      email: formData.email || null,
-      telefono: formData.telefono || null,
+      cargo: normalizeOptionalString(formData.cargo),
+      email: normalizeOptionalString(formData.email),
+      telefono: normalizeOptionalString(formData.telefono),
       empresa_id: formData.empresa_id,
       es_principal: formData.es_principal,
-      notas: formData.notas || null,
+      notas: normalizeOptionalString(formData.notas),
       created_by: user.id,
+    };
+
+    const { error, removedColumns } = await safeInsertWithSchemaFallback({
+      tableName: "contactos",
+      payload,
+      insertFn: async (currentPayload) => {
+        const { error: insertError } = await supabase
+          .from("contactos")
+          .insert(currentPayload as Database["public"]["Tables"]["contactos"]["Insert"]);
+
+        return { data: { success: true }, error: insertError };
+      },
     });
 
     if (error) {
-      toast({ title: "Error al crear contacto", description: error.message, variant: "destructive" });
+      const details = removedColumns.length > 0
+        ? `Se omitieron campos no disponibles temporalmente: ${removedColumns.join(", ")}.`
+        : "";
+
+      toast({
+        title: "Error al crear contacto",
+        description: `${error.message} ${details}`.trim(),
+        variant: "destructive",
+      });
     } else {
       toast({ title: "Contacto creado", description: "El contacto se ha registrado correctamente." });
       setDialogOpen(false);

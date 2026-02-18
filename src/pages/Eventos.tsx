@@ -20,6 +20,8 @@ import { EventAttendanceManager } from "@/components/EventAttendanceManager";
 import { EventSurveysManager } from "@/components/EventSurveysManager";
 import { Plus, Search, Calendar, Filter, Loader2, ArrowLeft } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { normalizeOptionalDate, normalizeOptionalString } from "@/lib/payloadUtils";
+import { safeInsertWithSchemaFallback } from "@/lib/supabaseInsert";
 import { useCatalogLookup, resolveLabelFromLookup } from "@/hooks/useCatalog";
 import { CatalogSelect } from "@/components/CatalogSelect";
 
@@ -103,13 +105,45 @@ export default function Eventos() {
     if (!user || !supabase) return;
 
     setSaving(true);
-    const { error } = await supabase.from("eventos").insert({
+    const payload: Database["public"]["Tables"]["eventos"]["Insert"] = {
       ...formData,
+      fecha: normalizeOptionalDate(formData.fecha),
+      hora_inicio: normalizeOptionalString(formData.hora_inicio),
+      fecha_fin: normalizeOptionalDate(formData.fecha_fin),
+      hora_fin: normalizeOptionalString(formData.hora_fin),
+      formato: normalizeOptionalString(formData.formato),
+      ubicacion: normalizeOptionalString(formData.ubicacion),
+      descripcion: normalizeOptionalString(formData.descripcion),
+      objetivo: normalizeOptionalString(formData.objetivo),
+      ponentes: normalizeOptionalString(formData.ponentes),
+      notas_programa: normalizeOptionalString(formData.notas_programa),
+      notas_evidencia: normalizeOptionalString(formData.notas_evidencia),
+      observaciones: normalizeOptionalString(formData.observaciones),
       created_by: user.id,
+    };
+
+    const { error, removedColumns } = await safeInsertWithSchemaFallback({
+      tableName: "eventos",
+      payload,
+      insertFn: async (currentPayload) => {
+        const { error: insertError } = await supabase
+          .from("eventos")
+          .insert(currentPayload as Database["public"]["Tables"]["eventos"]["Insert"]);
+
+        return { data: { success: true }, error: insertError };
+      },
     });
 
     if (error) {
-      toast({ title: "Error al crear evento", description: error.message, variant: "destructive" });
+      const details = removedColumns.length > 0
+        ? `Se omitieron campos no disponibles temporalmente: ${removedColumns.join(", ")}.`
+        : "";
+
+      toast({
+        title: "Error al crear evento",
+        description: `${error.message} ${details}`.trim(),
+        variant: "destructive",
+      });
     } else {
       toast({ title: "Evento creado", description: "El evento se ha registrado correctamente." });
       setDialogOpen(false);
