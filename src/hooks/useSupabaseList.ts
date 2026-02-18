@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import type { PostgrestFilterBuilder } from "@supabase/postgrest-js";
@@ -28,8 +28,15 @@ export function useSupabaseList<T>({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const applyFiltersRef = useRef(applyFilters);
+  const onSuccessRef = useRef(onSuccess);
 
   const depsKey = useMemo(() => JSON.stringify(dependencies), [dependencies]);
+
+  useEffect(() => {
+    applyFiltersRef.current = applyFilters;
+    onSuccessRef.current = onSuccess;
+  }, [applyFilters, onSuccess]);
 
   const fetchData = useCallback(async () => {
     if (!supabase) {
@@ -42,8 +49,8 @@ export function useSupabaseList<T>({
 
     try {
       let query = supabase.from(tableName).select(select) as QueryBuilder;
-      if (applyFilters) {
-        query = applyFilters(query);
+      if (applyFiltersRef.current) {
+        query = applyFiltersRef.current(query);
       }
 
       const { data: rows, error: fetchError } = await query;
@@ -60,7 +67,7 @@ export function useSupabaseList<T>({
 
       const typedRows = (rows || []) as T[];
       setData(typedRows);
-      onSuccess?.(typedRows);
+      onSuccessRef.current?.(typedRows);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error desconocido";
       setError(message);
@@ -73,7 +80,7 @@ export function useSupabaseList<T>({
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tableName, select, applyFilters, toast, onSuccess, depsKey]);
+  }, [tableName, select, toast, depsKey]);
 
   useEffect(() => {
     fetchData();
