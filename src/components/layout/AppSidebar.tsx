@@ -48,14 +48,14 @@ const overviewNavItems = [
 ];
 
 const pipelineNavItems = [
-  { title: "1. Empresas", url: "/empresas", icon: Building2 },
-  { title: "1.1 Contactos", url: "/contactos", icon: Users },
-  { title: "1.2 Oportunidades", url: "/oportunidades", icon: Target },
-  { title: "1.3 Subvenciones", url: "/grants", icon: Gift },
-  { title: "2. Asesoramientos", url: "/asesoramientos", icon: ClipboardList },
-  { title: "3. Informes", url: "/informes", icon: ClipboardCheck },
-  { title: "3.1 Planes de Acción", url: "/planes-accion", icon: ListChecks },
-  { title: "4. Tareas", url: "/tareas", icon: CheckSquare },
+  { title: "Empresas", url: "/empresas", icon: Building2 },
+  { title: "Contactos", url: "/contactos", icon: Users },
+  { title: "Oportunidades", url: "/oportunidades", icon: Target },
+  { title: "Subvenciones", url: "/grants", icon: Gift },
+  { title: "Asesoramientos", url: "/asesoramientos", icon: ClipboardList },
+  { title: "Informes", url: "/informes", icon: ClipboardCheck },
+  { title: "Planes de Acción", url: "/planes-accion", icon: ListChecks },
+  { title: "Tareas", url: "/tareas", icon: CheckSquare },
 ];
 
 const activityNavItems = [
