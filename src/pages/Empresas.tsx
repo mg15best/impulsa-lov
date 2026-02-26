@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -145,20 +145,22 @@ export default function Empresas() {
   const navigate = useNavigate();
 
   // Use the consolidated data loader hook
+  const applyCompanyFilters = useCallback((query: ReturnType<typeof supabase.from>) => {
+    let filteredQuery = query.order("created_at", { ascending: false });
+
+    if (filterSector && filterSector !== "all") {
+      filteredQuery = filteredQuery.eq("sector", filterSector as SectorEmpresa);
+    }
+    if (filterEstado && filterEstado !== "all") {
+      filteredQuery = filteredQuery.eq("estado", filterEstado as EstadoEmpresa);
+    }
+
+    return filteredQuery;
+  }, [filterSector, filterEstado]);
+
   const { data: empresas, loading, reload } = useDataLoader<Empresa>(
     "empresas",
-    (query) => {
-      let filteredQuery = query.order("created_at", { ascending: false });
-      
-      if (filterSector && filterSector !== "all") {
-        filteredQuery = filteredQuery.eq("sector", filterSector as SectorEmpresa);
-      }
-      if (filterEstado && filterEstado !== "all") {
-        filteredQuery = filteredQuery.eq("estado", filterEstado as EstadoEmpresa);
-      }
-      
-      return filteredQuery;
-    },
+    applyCompanyFilters,
     [filterSector, filterEstado]
   );
 
@@ -360,9 +362,78 @@ export default function Empresas() {
         });
       }
     }
+
+    const hasPrimaryContactInfo =
+      Boolean(companyData.contacto_principal?.trim()) ||
+      Boolean(companyData.email?.trim()) ||
+      Boolean(companyData.telefono?.trim());
+    let contactTraceMessage = "No se indicó información de contacto principal en el alta de empresa.";
+
+    if (hasPrimaryContactInfo) {
+      const contactName = companyData.contacto_principal?.trim() || `Contacto ${companyData.nombre}`;
+      const locationNotes = [
+        companyData.direccion,
+        [companyData.codigo_postal, companyData.municipio].filter(Boolean).join(" "),
+        companyData.isla,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+      const contactPayload: Database["public"]["Tables"]["contactos"]["Insert"] = {
+        empresa_id: newCompany.id,
+        nombre: contactName,
+        cargo: "Contacto principal",
+        email: normalizeOptionalString(companyData.email),
+        telefono: normalizeOptionalString(companyData.telefono),
+        notas: normalizeOptionalString(locationNotes),
+        es_principal: true,
+        created_by: user.id,
+      };
+
+      const { error: contactError, removedColumns: removedContactColumns } = await safeInsertWithSchemaFallback({
+        tableName: "contactos",
+        payload: contactPayload,
+        insertFn: async (payload) => {
+          const { error } = await supabase
+            .from("contactos")
+            .insert(payload as Database["public"]["Tables"]["contactos"]["Insert"]);
+
+          return { data: { success: true }, error };
+        },
+      });
+
+      if (contactError) {
+        console.error("Error creating primary contact:", {
+          error: contactError,
+          removedColumns: removedContactColumns,
+          companyId: newCompany.id,
+          userId: user.id,
+          companyName: companyData.nombre,
+          timestamp: new Date().toISOString(),
+        });
+
+        const details = removedContactColumns.length > 0
+          ? ` Se omitieron campos no disponibles temporalmente: ${removedContactColumns.join(", ")}.`
+          : "";
+
+        contactTraceMessage = `No se pudo crear el contacto principal automáticamente.${details}`;
+
+        toast({
+          title: "Empresa creada con advertencia",
+          description:
+            `La empresa se guardó, pero no se pudo crear el contacto principal automáticamente.${details}`,
+          variant: "destructive",
+        });
+      } else {
+        contactTraceMessage = `Contacto principal creado automáticamente: ${contactName}.`;
+      }
+    }
     
     // Success
-    toast({ title: "Empresa creada", description: "La empresa se ha registrado correctamente." });
+    toast({
+      title: "Empresa creada",
+      description: `La empresa se ha registrado correctamente. ${contactTraceMessage}`,
+    });
     setDialogOpen(false);
     setFormData(initialFormData);
     reload();
@@ -891,6 +962,20 @@ export default function Empresas() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {selectedEmpresa && (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="grid gap-2 text-sm sm:grid-cols-2">
+                    <div><span className="text-muted-foreground">CIF:</span> {selectedEmpresa.cif || "-"}</div>
+                    <div><span className="text-muted-foreground">Estado:</span> {estadoLabels[selectedEmpresa.estado]}</div>
+                    <div><span className="text-muted-foreground">Email:</span> {selectedEmpresa.email || "-"}</div>
+                    <div><span className="text-muted-foreground">Teléfono:</span> {selectedEmpresa.telefono || "-"}</div>
+                    <div className="sm:col-span-2"><span className="text-muted-foreground">Dirección:</span> {[selectedEmpresa.direccion, selectedEmpresa.codigo_postal, selectedEmpresa.municipio, selectedEmpresa.isla].filter(Boolean).join(", ") || "-"}</div>
+                    <div className="sm:col-span-2"><span className="text-muted-foreground">Contacto principal:</span> {selectedEmpresa.contacto_principal || "-"}</div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             <Card className="cursor-pointer hover:bg-muted/50" onClick={() => {
               setRelatedDialogOpen(false);
               navigate(`/contactos?empresa_id=${selectedEmpresa?.id}`);
