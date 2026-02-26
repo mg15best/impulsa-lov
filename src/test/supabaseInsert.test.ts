@@ -100,4 +100,53 @@ describe("safeInsertWithSchemaFallback", () => {
     expect(response.attempts).toBe(1);
     expect(response.removedColumns).toEqual([]);
   });
+
+  it("keeps retrying beyond default maxAttempts when there are many removable columns", async () => {
+    const payload = {
+      nombre: "Empresa A",
+      codigo_estado_pipeline: "lead",
+      codigo_motivo_cierre: "",
+      codigo_origen_lead: "web",
+      codigo_postal: "38001",
+      es_caso_exito: false,
+    };
+
+    const missingColumns = [
+      "codigo_estado_pipeline",
+      "codigo_motivo_cierre",
+      "codigo_origen_lead",
+      "codigo_postal",
+      "es_caso_exito",
+    ];
+
+    let attempt = 0;
+
+    const response = await safeInsertWithSchemaFallback({
+      tableName: "empresas",
+      payload,
+      insertFn: async (currentPayload) => {
+        attempt += 1;
+
+        const missingColumn = missingColumns[attempt - 1];
+        if (missingColumn) {
+          return {
+            data: null,
+            error: {
+              message: `Could not find the '${missingColumn}' column of 'empresas' in the schema cache`,
+            },
+          };
+        }
+
+        return {
+          data: { id: "1", ...currentPayload },
+          error: null,
+        };
+      },
+    });
+
+    expect(response.error).toBeNull();
+    expect(response.attempts).toBe(6);
+    expect(response.removedColumns).toEqual(missingColumns);
+    expect(response.finalPayload).toEqual({ nombre: "Empresa A" });
+  });
 });
