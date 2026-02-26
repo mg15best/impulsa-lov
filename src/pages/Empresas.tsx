@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -145,20 +145,22 @@ export default function Empresas() {
   const navigate = useNavigate();
 
   // Use the consolidated data loader hook
+  const applyCompanyFilters = useCallback((query: ReturnType<typeof supabase.from>) => {
+    let filteredQuery = query.order("created_at", { ascending: false });
+
+    if (filterSector && filterSector !== "all") {
+      filteredQuery = filteredQuery.eq("sector", filterSector as SectorEmpresa);
+    }
+    if (filterEstado && filterEstado !== "all") {
+      filteredQuery = filteredQuery.eq("estado", filterEstado as EstadoEmpresa);
+    }
+
+    return filteredQuery;
+  }, [filterSector, filterEstado]);
+
   const { data: empresas, loading, reload } = useDataLoader<Empresa>(
     "empresas",
-    (query) => {
-      let filteredQuery = query.order("created_at", { ascending: false });
-      
-      if (filterSector && filterSector !== "all") {
-        filteredQuery = filteredQuery.eq("sector", filterSector as SectorEmpresa);
-      }
-      if (filterEstado && filterEstado !== "all") {
-        filteredQuery = filteredQuery.eq("estado", filterEstado as EstadoEmpresa);
-      }
-      
-      return filteredQuery;
-    },
+    applyCompanyFilters,
     [filterSector, filterEstado]
   );
 
