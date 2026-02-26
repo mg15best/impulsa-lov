@@ -49,10 +49,11 @@ export async function safeInsertWithSchemaFallback<
   SafeInsertResponse<TPayload, TData, TError>
 > {
   const { tableName, payload, insertFn, maxAttempts = 5 } = options;
+  let attemptsBudget = maxAttempts;
   const payloadWithFallback: Partial<TPayload> = { ...payload };
   const removedColumns: Array<keyof TPayload> = [];
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+  for (let attempt = 1; attempt <= attemptsBudget; attempt += 1) {
     const { data, error } = await insertFn(payloadWithFallback);
 
     if (!error) {
@@ -69,6 +70,7 @@ export async function safeInsertWithSchemaFallback<
     if (missingColumn && missingColumn in payloadWithFallback) {
       delete payloadWithFallback[missingColumn as keyof TPayload];
       removedColumns.push(missingColumn as keyof TPayload);
+      attemptsBudget += 1;
       continue;
     }
 
@@ -84,9 +86,9 @@ export async function safeInsertWithSchemaFallback<
   return {
     data: null,
     error: {
-      message: `Insert failed after ${maxAttempts} attempts for table '${tableName}'.`,
+      message: `Insert failed after ${attemptsBudget} attempts for table '${tableName}'.`,
     } as TError,
-    attempts: maxAttempts,
+    attempts: attemptsBudget,
     removedColumns,
     finalPayload: payloadWithFallback,
   };
