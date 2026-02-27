@@ -367,6 +367,7 @@ export default function Empresas() {
       Boolean(companyData.contacto_principal?.trim()) ||
       Boolean(companyData.email?.trim()) ||
       Boolean(companyData.telefono?.trim());
+    let contactTraceMessage = "No se indicó información de contacto principal en el alta de empresa.";
 
     if (hasPrimaryContactInfo) {
       const contactName = companyData.contacto_principal?.trim() || `Contacto ${companyData.nombre}`;
@@ -378,6 +379,28 @@ export default function Empresas() {
         .filter(Boolean)
         .join(" · ");
 
+      const contactPayload: Database["public"]["Tables"]["contactos"]["Insert"] = {
+        empresa_id: newCompany.id,
+        nombre: contactName,
+        cargo: "Contacto principal",
+        email: normalizeOptionalString(companyData.email),
+        telefono: normalizeOptionalString(companyData.telefono),
+        notas: normalizeOptionalString(locationNotes),
+        es_principal: true,
+        created_by: user.id,
+      };
+
+      const { error: contactError, removedColumns: removedContactColumns } = await safeInsertWithSchemaFallback({
+        tableName: "contactos",
+        payload: contactPayload,
+        insertFn: async (payload) => {
+          const { error } = await supabase
+            .from("contactos")
+            .insert(payload as Database["public"]["Tables"]["contactos"]["Insert"]);
+
+          return { data: { success: true }, error };
+        },
+      });
       const { error: contactError } = await supabase
         .from("contactos")
         .insert({
@@ -393,12 +416,27 @@ export default function Empresas() {
       if (contactError) {
         console.error("Error creating primary contact:", {
           error: contactError,
+          removedColumns: removedContactColumns,
           companyId: newCompany.id,
           userId: user.id,
           companyName: companyData.nombre,
           timestamp: new Date().toISOString(),
         });
 
+        const details = removedContactColumns.length > 0
+          ? ` Se omitieron campos no disponibles temporalmente: ${removedContactColumns.join(", ")}.`
+          : "";
+
+        contactTraceMessage = `No se pudo crear el contacto principal automáticamente.${details}`;
+
+        toast({
+          title: "Empresa creada con advertencia",
+          description:
+            `La empresa se guardó, pero no se pudo crear el contacto principal automáticamente.${details}`,
+          variant: "destructive",
+        });
+      } else {
+        contactTraceMessage = `Contacto principal creado automáticamente: ${contactName}.`;
         toast({
           title: "Empresa creada con advertencia",
           description:
