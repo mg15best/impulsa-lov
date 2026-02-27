@@ -401,6 +401,17 @@ export default function Empresas() {
           return { data: { success: true }, error };
         },
       });
+      const { error: contactError } = await supabase
+        .from("contactos")
+        .insert({
+          empresa_id: newCompany.id,
+          nombre: contactName,
+          email: normalizeOptionalString(companyData.email),
+          telefono: normalizeOptionalString(companyData.telefono),
+          notas: normalizeOptionalString(locationNotes),
+          es_principal: true,
+          created_by: user.id,
+        });
 
       if (contactError) {
         console.error("Error creating primary contact:", {
@@ -426,6 +437,12 @@ export default function Empresas() {
         });
       } else {
         contactTraceMessage = `Contacto principal creado automáticamente: ${contactName}.`;
+        toast({
+          title: "Empresa creada con advertencia",
+          description:
+            "La empresa se guardó, pero no se pudo crear el contacto principal automáticamente.",
+          variant: "destructive",
+        });
       }
     }
     
