@@ -409,7 +409,10 @@ export default function Empresas() {
     }
     
     // Success
-    toast({ title: "Empresa creada", description: "La empresa se ha registrado correctamente." });
+    toast({
+      title: "Empresa creada",
+      description: `La empresa se ha registrado correctamente. ${contactTraceMessage}`,
+    });
     setDialogOpen(false);
     setFormData(initialFormData);
     reload();
