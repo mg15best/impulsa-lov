@@ -93,3 +93,5 @@ export async function safeInsertWithSchemaFallback<
     finalPayload: payloadWithFallback,
   };
 }
+
+export const safeUpdateWithSchemaFallback = safeInsertWithSchemaFallback;

@@ -19,7 +19,7 @@ import { Plus, Search, Building2, Filter, Loader2, Users, ClipboardList, Externa
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeOptionalDate, normalizeOptionalString } from "@/lib/payloadUtils";
-import { safeInsertWithSchemaFallback } from "@/lib/supabaseInsert";
+import { safeInsertWithSchemaFallback, safeUpdateWithSchemaFallback } from "@/lib/supabaseInsert";
 
 type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
 type SectorEmpresa = Database["public"]["Enums"]["sector_empresa"];
@@ -369,10 +369,17 @@ export default function Empresas() {
 
     // --- EDIT mode ---
     if (editingEmpresa) {
-      const { error: updateError } = await supabase
-        .from("empresas")
-        .update(normalizedCompanyData)
-        .eq("id", editingEmpresa.id);
+      const { error: updateError } = await safeUpdateWithSchemaFallback({
+        tableName: "empresas",
+        payload: normalizedCompanyData as Record<string, unknown>,
+        insertFn: async (payload) => {
+          const { error } = await supabase
+            .from("empresas")
+            .update(payload)
+            .eq("id", editingEmpresa.id);
+          return { data: null, error };
+        },
+      });
 
       if (updateError) {
         toast({
