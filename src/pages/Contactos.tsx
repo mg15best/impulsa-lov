@@ -26,7 +26,6 @@ type Empresa = Database["public"]["Tables"]["empresas"]["Row"];
 
 export default function Contactos() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterEmpresa, setFilterEmpresa] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -34,6 +33,11 @@ export default function Contactos() {
   const { canWrite } = useUserRoles();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  // Initialise from URL param once on mount to avoid a spurious "all" fetch
+  // before the useEffect below would update it (race condition prevention).
+  const [filterEmpresa, setFilterEmpresa] = useState<string>(
+    () => searchParams.get("empresa_id") || "all"
+  );
 
   // Load empresas for dropdown (no filters)
   const applyEmpresasOrder = useCallback((query: ReturnType<typeof supabase.from>) =>

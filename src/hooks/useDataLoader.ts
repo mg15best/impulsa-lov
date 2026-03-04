@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import type { PostgrestFilterBuilder } from "@supabase/postgrest-js";
@@ -29,6 +29,7 @@ export function useDataLoader<T>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const fetchCountRef = useRef(0);
 
   // Stringify dependencies to create a stable reference
   const depsKey = useMemo(() => JSON.stringify(dependencies), [dependencies]);
@@ -38,6 +39,9 @@ export function useDataLoader<T>(
       setLoading(false);
       return;
     }
+
+    fetchCountRef.current += 1;
+    const currentFetch = fetchCountRef.current;
 
     setLoading(true);
     setError(null);
@@ -52,6 +56,9 @@ export function useDataLoader<T>(
 
       const { data: result, error: fetchError } = await query;
 
+      // Discard results from superseded (stale) fetches
+      if (fetchCountRef.current !== currentFetch) return;
+
       if (fetchError) {
         setError(fetchError.message);
         toast({
@@ -63,6 +70,7 @@ export function useDataLoader<T>(
         setData(result || []);
       }
     } catch (err) {
+      if (fetchCountRef.current !== currentFetch) return;
       const errorMessage = err instanceof Error ? err.message : "Error desconocido";
       setError(errorMessage);
       toast({
@@ -71,7 +79,9 @@ export function useDataLoader<T>(
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      if (fetchCountRef.current === currentFetch) {
+        setLoading(false);
+      }
     }
     // depsKey is intentionally included to trigger refetch when dependencies change
     // eslint-disable-next-line react-hooks/exhaustive-deps
