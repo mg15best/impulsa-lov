@@ -15,7 +15,7 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 import { useDataLoader, useLocalSearch } from "@/hooks/useDataLoader";
 import { PermissionButton } from "@/components/PermissionButton";
 import { CatalogSelect } from "@/components/CatalogSelect";
-import { Plus, Search, Building2, Filter, Loader2, Users, ClipboardList, ExternalLink } from "lucide-react";
+import { Plus, Search, Building2, Filter, Loader2, Users, ClipboardList, ExternalLink, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeOptionalDate, normalizeOptionalString } from "@/lib/payloadUtils";
@@ -135,6 +135,7 @@ export default function Empresas() {
   const [filterEstado, setFilterEstado] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingEmpresa, setEditingEmpresa] = useState<Empresa | null>(null);
   const [selectedEmpresa, setSelectedEmpresa] = useState<Empresa | null>(null);
   const [relatedDialogOpen, setRelatedDialogOpen] = useState(false);
   const [contactosCount, setContactosCount] = useState(0);
@@ -209,6 +210,69 @@ export default function Empresas() {
     setRelatedDialogOpen(true);
   };
 
+  const handleEditEmpresa = async (empresa: Empresa) => {
+    setEditingEmpresa(empresa);
+
+    // Load compliance data for this company
+    let complianceData = {
+      data_protection_consent: false,
+      data_consent_date: "",
+      image_rights_consent: false,
+      image_consent_date: "",
+    };
+
+    if (supabase) {
+      const { data: compliance } = await supabase
+        .from("company_compliance")
+        .select("*")
+        .eq("company_id", empresa.id)
+        .maybeSingle();
+
+      if (compliance) {
+        complianceData = {
+          data_protection_consent: compliance.data_protection_consent ?? false,
+          data_consent_date: compliance.data_consent_date ?? "",
+          image_rights_consent: compliance.image_rights_consent ?? false,
+          image_consent_date: compliance.image_consent_date ?? "",
+        };
+      }
+    }
+
+    setFormData({
+      ...complianceData,
+      nombre: empresa.nombre,
+      nombre_comercial: empresa.nombre_comercial ?? "",
+      cif: empresa.cif ?? "",
+      forma_juridica: empresa.forma_juridica ?? "",
+      sector: empresa.sector,
+      subsector: empresa.subsector ?? "",
+      fase_madurez: empresa.fase_madurez,
+      estado: empresa.estado,
+      descripcion: empresa.descripcion ?? "",
+      direccion: empresa.direccion ?? "",
+      codigo_postal: empresa.codigo_postal ?? "",
+      municipio: empresa.municipio ?? "",
+      isla: empresa.isla ?? "",
+      telefono: empresa.telefono ?? "",
+      email: empresa.email ?? "",
+      web: empresa.web ?? "",
+      redes_sociales: empresa.redes_sociales ?? null,
+      contacto_principal: empresa.contacto_principal ?? "",
+      fecha_constitucion: empresa.fecha_constitucion ?? "",
+      codigo_estado_pipeline: empresa.codigo_estado_pipeline ?? "",
+      codigo_origen_lead: empresa.codigo_origen_lead ?? "",
+      url_formulario_diagnostico: empresa.url_formulario_diagnostico ?? "",
+      fecha_recepcion_diagnostico: empresa.fecha_recepcion_diagnostico ?? "",
+      resumen_diagnostico: empresa.resumen_diagnostico ?? "",
+      fecha_inicio: empresa.fecha_inicio ?? "",
+      fecha_finalizacion: empresa.fecha_finalizacion ?? "",
+      codigo_motivo_cierre: empresa.codigo_motivo_cierre ?? "",
+      es_caso_exito: empresa.es_caso_exito ?? false,
+    });
+
+    setDialogOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !supabase) return;
@@ -271,13 +335,16 @@ export default function Empresas() {
       image_consent_date: _icd,
       ...companyData
     } = formData;
-    
-    const companyPayload: Database["public"]["Tables"]["empresas"]["Insert"] = {
-      ...companyData,
+
+    const normalizedCompanyData = {
+      nombre: companyData.nombre,
       nombre_comercial: normalizeOptionalString(companyData.nombre_comercial),
       cif: normalizeOptionalString(companyData.cif),
       forma_juridica: normalizeOptionalString(companyData.forma_juridica),
+      sector: companyData.sector,
       subsector: normalizeOptionalString(companyData.subsector),
+      fase_madurez: companyData.fase_madurez,
+      estado: companyData.estado,
       descripcion: normalizeOptionalString(companyData.descripcion),
       direccion: normalizeOptionalString(companyData.direccion),
       codigo_postal: normalizeOptionalString(companyData.codigo_postal),
@@ -286,6 +353,7 @@ export default function Empresas() {
       telefono: normalizeOptionalString(companyData.telefono),
       email: normalizeOptionalString(companyData.email),
       web: normalizeOptionalString(companyData.web),
+      redes_sociales: companyData.redes_sociales,
       contacto_principal: normalizeOptionalString(companyData.contacto_principal),
       fecha_constitucion: normalizeOptionalDate(companyData.fecha_constitucion),
       codigo_estado_pipeline: normalizeOptionalString(companyData.codigo_estado_pipeline),
@@ -296,6 +364,75 @@ export default function Empresas() {
       fecha_inicio: normalizeOptionalDate(companyData.fecha_inicio),
       fecha_finalizacion: normalizeOptionalDate(companyData.fecha_finalizacion),
       codigo_motivo_cierre: normalizeOptionalString(companyData.codigo_motivo_cierre),
+      es_caso_exito: companyData.es_caso_exito,
+    };
+
+    // --- EDIT mode ---
+    if (editingEmpresa) {
+      const { error: updateError } = await supabase
+        .from("empresas")
+        .update(normalizedCompanyData)
+        .eq("id", editingEmpresa.id);
+
+      if (updateError) {
+        toast({
+          title: "Error al actualizar empresa",
+          description: updateError.message,
+          variant: "destructive",
+        });
+        setSaving(false);
+        return;
+      }
+
+      // Upsert compliance data
+      const hasComplianceData =
+        data_protection_consent ||
+        image_rights_consent ||
+        Boolean(data_consent_date) ||
+        Boolean(image_consent_date);
+
+      if (hasComplianceData) {
+        const { error: complianceError } = await supabase
+          .from("company_compliance")
+          .upsert({
+            company_id: editingEmpresa.id,
+            data_protection_consent,
+            data_consent_date: data_consent_date || null,
+            image_rights_consent,
+            image_consent_date: image_consent_date || null,
+            updated_by: user.id,
+          }, { onConflict: "company_id" });
+
+        if (complianceError) {
+          console.error("Error updating compliance record:", {
+            error: complianceError,
+            companyId: editingEmpresa.id,
+            userId: user.id,
+            timestamp: new Date().toISOString(),
+          });
+          toast({
+            title: "Empresa actualizada con advertencia",
+            description: "La empresa se guardó, pero no se pudieron actualizar los consentimientos.",
+            variant: "destructive",
+          });
+        }
+      }
+
+      toast({
+        title: "Empresa actualizada",
+        description: "Los datos de la empresa se han actualizado correctamente.",
+      });
+      setDialogOpen(false);
+      setFormData(initialFormData);
+      setEditingEmpresa(null);
+      reload();
+      setSaving(false);
+      return;
+    }
+
+    // --- CREATE mode ---
+    const companyPayload: Database["public"]["Tables"]["empresas"]["Insert"] = {
+      ...normalizedCompanyData,
       created_by: user.id,
     };
 
@@ -460,7 +597,13 @@ export default function Empresas() {
             Gestión de empresas emergentes del proyecto
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setEditingEmpresa(null);
+            setFormData(initialFormData);
+          }
+        }}>
           <DialogTrigger asChild>
             <PermissionButton action="create">
               <Plus className="mr-2 h-4 w-4" />
@@ -469,9 +612,9 @@ export default function Empresas() {
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Registrar Nueva Empresa</DialogTitle>
+              <DialogTitle>{editingEmpresa ? "Editar Empresa" : "Registrar Nueva Empresa"}</DialogTitle>
               <DialogDescription>
-                Completa los datos de la empresa emergente
+                {editingEmpresa ? `Editando: ${editingEmpresa.nombre}` : "Completa los datos de la empresa emergente"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -820,12 +963,16 @@ export default function Empresas() {
               </details>
               
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => {
+                  setDialogOpen(false);
+                  setEditingEmpresa(null);
+                  setFormData(initialFormData);
+                }}>
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={saving}>
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Guardar
+                  {editingEmpresa ? "Actualizar" : "Guardar"}
                 </Button>
               </div>
             </form>
@@ -914,6 +1061,7 @@ export default function Empresas() {
                   <TableHead>Fase</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Contacto</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -944,6 +1092,18 @@ export default function Empresas() {
                       </Badge>
                     </TableCell>
                     <TableCell>{empresa.contacto_principal || empresa.email || "-"}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      {canWrite && (
+                        <PermissionButton
+                          action="edit"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditEmpresa(empresa)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </PermissionButton>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -973,6 +1133,22 @@ export default function Empresas() {
                     <div className="sm:col-span-2"><span className="text-muted-foreground">Dirección:</span> {[selectedEmpresa.direccion, selectedEmpresa.codigo_postal, selectedEmpresa.municipio, selectedEmpresa.isla].filter(Boolean).join(", ") || "-"}</div>
                     <div className="sm:col-span-2"><span className="text-muted-foreground">Contacto principal:</span> {selectedEmpresa.contacto_principal || "-"}</div>
                   </div>
+                  {canWrite && (
+                    <div className="mt-4 flex justify-end">
+                      <PermissionButton
+                        action="edit"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setRelatedDialogOpen(false);
+                          handleEditEmpresa(selectedEmpresa);
+                        }}
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar Empresa
+                      </PermissionButton>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
