@@ -425,6 +425,81 @@ export default function Empresas() {
         }
       }
 
+      // Sync principal contact in contactos table
+      const hasPrimaryContactInfo =
+        Boolean(companyData.contacto_principal?.trim()) ||
+        Boolean(companyData.email?.trim()) ||
+        Boolean(companyData.telefono?.trim());
+
+      if (hasPrimaryContactInfo) {
+        const contactName = companyData.contacto_principal?.trim() || `Contacto ${companyData.nombre}`;
+
+        const { data: existingContact } = await supabase
+          .from("contactos")
+          .select("id")
+          .eq("empresa_id", editingEmpresa.id)
+          .eq("es_principal", true)
+          .maybeSingle();
+
+        if (existingContact) {
+          const { error: contactUpdateError } = await supabase
+            .from("contactos")
+            .update({
+              nombre: contactName,
+              email: normalizeOptionalString(companyData.email),
+              telefono: normalizeOptionalString(companyData.telefono),
+            })
+            .eq("id", existingContact.id);
+
+          if (contactUpdateError) {
+            console.error("Error updating principal contact:", {
+              error: contactUpdateError,
+              companyId: editingEmpresa.id,
+              userId: user.id,
+              timestamp: new Date().toISOString(),
+            });
+            toast({
+              title: "Empresa actualizada con advertencia",
+              description: "La empresa se guardó, pero no se pudo actualizar el contacto principal.",
+              variant: "destructive",
+            });
+          }
+        } else {
+          const { error: contactInsertError } = await safeInsertWithSchemaFallback({
+            tableName: "contactos",
+            payload: {
+              empresa_id: editingEmpresa.id,
+              nombre: contactName,
+              cargo: "Contacto principal",
+              email: normalizeOptionalString(companyData.email),
+              telefono: normalizeOptionalString(companyData.telefono),
+              es_principal: true,
+              created_by: user.id,
+            } as Database["public"]["Tables"]["contactos"]["Insert"],
+            insertFn: async (payload) => {
+              const { error } = await supabase
+                .from("contactos")
+                .insert(payload as Database["public"]["Tables"]["contactos"]["Insert"]);
+              return { data: { success: true }, error };
+            },
+          });
+
+          if (contactInsertError) {
+            console.error("Error creating principal contact on edit:", {
+              error: contactInsertError,
+              companyId: editingEmpresa.id,
+              userId: user.id,
+              timestamp: new Date().toISOString(),
+            });
+            toast({
+              title: "Empresa actualizada con advertencia",
+              description: "La empresa se guardó, pero no se pudo registrar el contacto principal.",
+              variant: "destructive",
+            });
+          }
+        }
+      }
+
       toast({
         title: "Empresa actualizada",
         description: "Los datos de la empresa se han actualizado correctamente.",
