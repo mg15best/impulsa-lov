@@ -73,12 +73,10 @@ export default function Contactos() {
     notas: "",
   });
 
-  // Check for empresa_id from URL params and set filter
+  // Check for empresa_id from URL params and set filter (reset to "all" when param is absent)
   useEffect(() => {
     const empresaIdParam = searchParams.get("empresa_id");
-    if (empresaIdParam) {
-      setFilterEmpresa(empresaIdParam);
-    }
+    setFilterEmpresa(empresaIdParam || "all");
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
