@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,20 +36,25 @@ export default function Contactos() {
   const [searchParams] = useSearchParams();
 
   // Load empresas for dropdown (no filters)
-  const { data: empresas } = useDataLoader<Empresa>("empresas", (query) => query.order("nombre"), []);
+  const applyEmpresasOrder = useCallback((query: ReturnType<typeof supabase.from>) =>
+    query.order("nombre"), []);
+
+  const { data: empresas } = useDataLoader<Empresa>("empresas", applyEmpresasOrder, []);
 
   // Load contactos with filters
+  const applyContactoFilters = useCallback((query: ReturnType<typeof supabase.from>) => {
+    let filteredQuery = query.select("*, empresa:empresas(*)").order("nombre");
+
+    if (filterEmpresa && filterEmpresa !== "all") {
+      filteredQuery = filteredQuery.eq("empresa_id", filterEmpresa);
+    }
+
+    return filteredQuery;
+  }, [filterEmpresa]);
+
   const { data: contactos, loading, reload } = useDataLoader<Contacto & { empresa?: Empresa }>(
     "contactos",
-    (query) => {
-      let filteredQuery = query.select("*, empresa:empresas(*)").order("nombre");
-      
-      if (filterEmpresa && filterEmpresa !== "all") {
-        filteredQuery = filteredQuery.eq("empresa_id", filterEmpresa);
-      }
-      
-      return filteredQuery;
-    },
+    applyContactoFilters,
     [filterEmpresa]
   );
 
